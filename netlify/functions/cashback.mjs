@@ -76,7 +76,7 @@ export default async req=>{try{
      const r=await fetch("https://api.awin.com/publishers/"+process.env.AWIN_PUBLISHER_ID+"/linkbuilder/generate",{method:"POST",headers:{Authorization:"Bearer "+process.env.AWIN_API_TOKEN,"content-type":"application/json"},body:JSON.stringify({advertiserId:Number(o.advertiserId),destinationUrl:o.destinationUrl,parameters:{clickref}})});
      if(!r.ok)throw Error("AWIN_LINK_ERROR"); const d=await r.json();trackingUrl=d.url||o.destinationUrl;
    } else trackingUrl=o.destinationUrl;
-   await store.setJSON("click/"+clickref,{clickref,clickToken,offerId:o.id,merchant:o.merchant,merchantId:o.merchantId||null,provider:o.provider||"custom",email,createdAt:new Date().toISOString(),status:"CLICKED"});
+   await store.setJSON("click/"+clickref,{clickref,clickToken,offerId:o.id,merchant:o.merchant,merchantId:o.merchantId||null,provider:o.provider||"custom",email,createdAt:new Date().toISOString(),status:"CLICKED"});\n   if(clickToken) await store.setJSON("click-token/"+clickToken,{clickref,email,offerId:o.id,merchant:o.merchant,merchantId:o.merchantId||null,createdAt:new Date().toISOString()});
    return out({ok:true,clickref,clickToken,trackingUrl},201);
  }
  return out({error:"Méthode non supportée."},405);
