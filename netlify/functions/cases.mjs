@@ -1,6 +1,7 @@
 import { getStore } from "@netlify/blobs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
+import { sendCustomerEmail } from "./notifications.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -76,6 +77,12 @@ export default async (req) => {
         item.events = Array.isArray(item.events) ? item.events : [];
         item.events.push({ at: item.updatedAt, type: "CLAIM_PREPARED" });
         await store.setJSON(`case/${item.accessToken}`, item);
+        await sendCustomerEmail({
+          to:item.email,name:item.name,caseNumber:item.caseNumber,
+          subject:`RÉCUPÈRE — mise à jour de votre dossier ${item.caseNumber}`,
+          title:"Votre dossier a été mis à jour",
+          body:`Nouveau statut : ${status}${body.note ? "\n\nNote : "+clean(body.note,1000) : ""}`
+        });
         const { accessToken, ...safe } = item;
         return response(safe);
       }
@@ -146,6 +153,12 @@ export default async (req) => {
         ]
       };
       await store.setJSON(`case/${token}`, item);
+      await sendCustomerEmail({
+        to: item.email, name: item.name, caseNumber: item.caseNumber,
+        subject: `RÉCUPÈRE — votre dossier ${item.caseNumber} est reçu`,
+        title: "Votre dossier est bien reçu",
+        body: `Votre dossier a été enregistré et une première analyse a été effectuée.\n\nStatut : ${item.status}\n${item.analysisLabel || ""}`
+      });
       return response({ ok: true, caseNumber, accessToken: token, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel }, 201);
     }
 
