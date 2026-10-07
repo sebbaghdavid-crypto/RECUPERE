@@ -20,7 +20,7 @@
 <div class="field"><label>Justificatif — facultatif</label><input name="document" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
 <div class="check"><input name="consent" type="checkbox" required><label>J'accepte que les informations transmises soient utilisées pour examiner ma demande et me recontacter au sujet de ce dossier.</label></div>
 <div class="note">🔒 Ne transmettez pas de mot de passe, code bancaire ou identifiant secret.</div><button class="btn" type="submit">Envoyer mon dossier →</button></form></div></div></section>
-<section style="padding:55px 0;background:#e6f2e8"><div class="container"><div class="section-title"><div class="eyebrow">NOUVEAU — CASHBACK</div><h2>Et si chaque achat pouvait aussi vous rapporter ?</h2><p>Découvrez les offres partenaires RÉCUPÈRE. Les commissions sont suivies automatiquement et le cashback n’est crédité qu’après confirmation.</p><a class="btn" href="/cashback/">Voir les offres cashback →</a></div></div></section><section class="portal" id="suivi"><div class="container"><div class="section-title"><div class="eyebrow" style="color:#9fd1bb">Votre dossier</div><h2>Suivez ce que RÉCUPÈRE fait pour vous.</h2><p>Entrez votre code de suivi reçu après l'envoi du dossier.</p></div><div class="track"><div class="track-grid"><input id="trackToken" placeholder="Votre code de suivi"><button class="btn" id="trackBtn">Voir mon dossier</button></div><div id="trackResult" class="track-result"></div></div></div></section></main><footer><div class="container"><strong>RÉCUPÈRE</strong> — Service de préparation et de suivi des démarches. Aucun remboursement n'est garanti.</div></footer>
+<section style="padding:55px 0;background:#e6f2e8"><div class="container"><div class="section-title"><div class="eyebrow">NOUVEAU — CASHBACK</div><h2>Et si chaque achat pouvait aussi vous rapporter ?</h2><p>Découvrez les offres partenaires RÉCUPÈRE. Les commissions sont suivies automatiquement et le cashback n’est crédité qu’après confirmation.</p><a class="btn" href="/cashback/">Voir les offres cashback →</a></div></div></section><section class="portal" id="suivi"><div class="container"><div class="section-title"><div class="eyebrow" style="color:#9fd1bb">Votre dossier</div><h2>Suivez ce que RÉCUPÈRE fait pour vous.</h2><p>Entrez votre code de suivi reçu après l'envoi du dossier.</p></div><div class="track"><div class="track-grid"><input id="trackToken" placeholder="Votre numéro de dossier"><button class="btn" id="trackBtn">Voir mon dossier</button></div><div id="trackResult" class="track-result"></div></div></div></section></main><footer><div class="container"><strong>RÉCUPÈRE</strong> — Service de préparation et de suivi des démarches. Aucun remboursement n'est garanti.</div></footer>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 const form=document.querySelector("form"),ok=document.getElementById("success"),err=document.getElementById("error");
@@ -32,9 +32,9 @@ try{
  caseNumberInput.value=cd.caseNumber;
  const nr=await fetch("/",{method:"POST",body:fd});if(!nr.ok)throw Error("Transmission du justificatif impossible");
  form.style.display="none";
- ok.querySelector("p").innerHTML='Votre dossier <strong>'+cd.caseNumber+'</strong> est enregistré. Conservez précieusement votre code de suivi : <strong>'+cd.accessToken+'</strong>.';
- ok.innerHTML+='<p class="case-number">Code : '+cd.caseNumber+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>';
- ok.style.display="block";sessionStorage.setItem("recupere_access_token",cd.accessToken);document.getElementById("trackToken").value=cd.accessToken;ok.scrollIntoView({behavior:"smooth",block:"center"});
+ ok.querySelector("p").innerHTML='Votre dossier <strong>'+cd.caseNumber+'</strong> est enregistré. Votre espace est sécurisé par votre session.';
+ ok.innerHTML+='<p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>';
+ ok.style.display="block";document.getElementById("trackToken").value=cd.caseNumber;ok.scrollIntoView({behavior:"smooth",block:"center"});
 }catch(x){err.textContent=x.message||"La transmission a échoué. Vérifiez votre connexion puis réessayez.";err.style.display="block";}};
 const trackBtn=document.getElementById("trackBtn"),trackToken=document.getElementById("trackToken"),trackResult=document.getElementById("trackResult");
 function renderTrack(c){
@@ -44,14 +44,14 @@ if(c.status==="PAYMENT_REQUIRED" && c.payment?.status!=="paid"){
 }
 trackResult.innerHTML=(c.analysisLabel?'<div style="margin-bottom:18px;padding:16px;background:#f4f5f1;border-radius:14px"><strong>'+esc(c.analysisLabel)+'</strong><p style="margin:6px 0;color:#63756f">'+esc(c.analysisSummary||'')+'</p>'+(c.estimatedRecovery!==null?'<b>Récupération estimée : '+esc(c.estimatedRecovery)+' €</b>':'')+'</div>':'')+'<div class="status-line"><span>Dossier</span><b>'+esc(c.caseNumber)+'</b></div><div class="status-line"><span>Statut</span><span class="status-badge">'+esc(c.status)+'</span></div><div class="status-line"><span>Situation</span><b>'+esc(c.category||"—")+'</b></div><div class="status-line"><span>Montant concerné</span><b>'+esc(c.amount||"—")+' €</b></div><h4>Historique</h4>'+((c.events||[]).slice().reverse().map(e=>'<div class="status-line"><span>'+esc(new Date(e.at).toLocaleString("fr-FR"))+'</span><b>'+esc(e.type)+(e.status?" · "+esc(e.status):"")+'</b></div>').join(""))}
 async function startPayment(){
-const token=trackToken.value.trim(); if(!token)return;
-const r=await fetch("/api/payment",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({accessToken:token})});
+const caseNumber=trackToken.value.trim(); if(!caseNumber)return;
+const r=await fetch("/api/payment",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({caseNumber})});
 const d=await r.json(); if(!r.ok)throw Error(d.error||"Paiement indisponible.");
 if(d.alreadyPaid){await track();return}
 window.location.href=d.checkoutUrl;
 }
-async function track(){const token=trackToken.value.trim();if(!token){trackResult.innerHTML='<p>Entrez votre code de suivi.</p>';return}trackResult.innerHTML='<p>Recherche…</p>';try{const r=await fetch("/api/cases?token="+encodeURIComponent(token));const c=await r.json();if(!r.ok)throw Error(c.error);renderTrack(c)}catch(e){trackResult.innerHTML='<p style="color:#9b4d3e">'+(e.message||"Dossier introuvable.")+'</p>'}}
+async function track(){const caseNumber=trackToken.value.trim();if(!caseNumber){trackResult.innerHTML='<p>Entrez votre code de suivi.</p>';return}trackResult.innerHTML='<p>Recherche…</p>';try{const r=await fetch("/api/portal?case="+encodeURIComponent(caseNumber));const c=await r.json();if(!r.ok)throw Error(c.error);renderTrack(c)}catch(e){trackResult.innerHTML='<p style="color:#9b4d3e">'+(e.message||"Dossier introuvable.")+'</p>'}}
 trackBtn.onclick=track;
 trackResult.addEventListener("click",e=>{if(e.target.id==="payBtn")startPayment().catch(x=>alert(x.message||"Paiement indisponible."));});
-const saved=sessionStorage.getItem("recupere_access_token");if(saved)trackToken.value=saved;
+
 </script></body></html>
