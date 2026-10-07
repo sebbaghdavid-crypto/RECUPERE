@@ -16,6 +16,18 @@ test("train delay over two hours calculates 50 percent",()=>{
  assert.equal(r.analysisCode,"TRAIN_DELAY_50");
 });
 
+test("train delay with separate hours and minutes is parsed",()=>{
+ const r=analyzeCase({category:"train",description:"TGV retardé de 2 heures 30 minutes",amount:"80"});
+ assert.equal(r.estimatedRecovery,40);
+ assert.equal(r.analysisCode,"TRAIN_DELAY_50");
+});
+
+test("train delay in minutes is parsed",()=>{
+ const r=analyzeCase({category:"train",description:"TGV retardé de 90 minutes",amount:"80"});
+ assert.equal(r.estimatedRecovery,20);
+ assert.equal(r.analysisCode,"TRAIN_DELAY_25");
+});
+
 test("air compensation remains verification only",()=>{
  const r=analyzeCase({category:"vol",description:"Vol annulé, distance 2200 km",amount:"300"});
  assert.equal(r.opportunityLevel,"VERIFY");
