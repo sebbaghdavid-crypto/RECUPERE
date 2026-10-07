@@ -2,6 +2,21 @@ import {getStore} from "@netlify/blobs";
 const store=getStore({name:"recupere-auth",region:"eu-central-1"});
 const hash=async v=>{const b=new TextEncoder().encode(v),h=await crypto.subtle.digest("SHA-256",b);return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,"0")).join("")};
 const token=()=>crypto.randomUUID().replaceAll("-","")+crypto.randomUUID().replaceAll("-","").slice(0,16);
+const windowMs=60_000;
+async function rateLimit(scope,key,limit){
+ const now=Date.now(), bucket=Math.floor(now/windowMs), safe=await hash(String(key||""));
+ const k="rate/"+scope+"/"+safe;
+ const current=await store.get(k,{type:"json",consistency:"strong"});
+ if(current?.bucket===bucket && Number(current.count)>=limit) return false;
+ const next=current?.bucket===bucket?Number(current.count||0)+1:1;
+ await store.setJSON(k,{bucket,count:next,updatedAt:new Date(now).toISOString()});
+ return true;
+}
+export async function allowMagicRequest(email,ip){
+ const e=String(email||"").trim().toLowerCase();
+ const i=String(ip||"unknown");
+ return (await rateLimit("email",e,5)) && (await rateLimit("ip",i,20));
+}
 export async function createMagic(email){
  const normalized=String(email||"").trim().toLowerCase();
  const raw=token(),h=await hash(raw);
