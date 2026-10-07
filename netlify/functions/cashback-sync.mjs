@@ -1,16 +1,9 @@
 import {getStore} from "@netlify/blobs";
+import {statusOf,money} from "./cashback-ledger.mjs";
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
-const money=v=>{const n=Number(v);return Number.isFinite(n)?Math.round(n*100)/100:0};
 const safeEmail=e=>String(e||"").toLowerCase().replace(/[^a-z0-9@._-]/gi,"_");
 const auth=()=>({Authorization:"Bearer "+process.env.CAPITIS_API_KEY,"content-type":"application/json"});
 const list=x=>Array.isArray(x)?x:(x?.data||x?.conversions||[]);
-const statusOf=x=>{
- const s=String(x?.status||x?.state||"pending").toUpperCase();
- if(["APPROVED","VALIDATED","CONFIRMED","PAYABLE"].includes(s))return "APPROVED";
- if(["PAID","SETTLED"].includes(s))return "PAID";
- if(["DECLINED","REJECTED","CANCELLED","DELETED","REVERSED"].includes(s))return "DECLINED";
- return "PENDING";
-};
 async function findClick(token){
  if(!token)return null;
  return await store.get("click-token/"+token,{type:"json",consistency:"strong"})||null;
