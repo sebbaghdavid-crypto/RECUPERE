@@ -7,7 +7,7 @@ function renderCases(d){$("#login").hidden=true;const rows=(d.cases||[]).map(c=>
 async function loadCase(n){try{render(await get("/api/portal?case="+n))}catch(e){$("#err").textContent=e.message}}
 async function loadCases(){try{const d=await get();if(!d.authenticated){$("#login").hidden=false;$("#portal").hidden=true;return}renderCases(d)}catch(e){$("#err").textContent=e.message}}
 async function requestLink(){const e=$("#email").value.trim();$("#err").textContent="";$("#msg").textContent="";const r=await fetch("/api/portal",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"request_link",email:e})}),d=await r.json();if(!r.ok){$("#err").textContent="Impossible d'envoyer le lien pour le moment.";return}$("#msg").textContent="Si un dossier correspond à cette adresse, un lien de connexion vient d'être envoyé."}
-async function logout(){await fetch("/api/portal",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout")}});location.href="/portal/"}
+async function logout(){await fetch("/api/portal",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"logout"})});location.href="/portal/"}
 function load(){const u=new URL(location.href);if(u.searchParams.has("magic"))history.replaceState({},document.title,"/portal/");loadCases()}
 $("#go").onclick=requestLink;load();
 </script></body></html>
