@@ -1,0 +1,9 @@
+{
+  "name": "recupere",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RÉCUPÈRE — détection et suivi des démarches de récupération",
+  "dependencies": {
+    "@netlify/blobs": "latest"
+  }
+}
