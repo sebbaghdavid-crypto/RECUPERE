@@ -31,7 +31,7 @@ test("train delay in minutes is parsed",()=>{
 test("air compensation remains verification only",()=>{
  const r=analyzeCase({category:"vol",description:"Vol annulé, distance 2200 km",amount:"300"});
  assert.equal(r.opportunityLevel,"VERIFY");
- assert.equal(r.estimatedRecovery,400);
+ assert.equal(r.estimatedRecovery,null);
  assert.equal(r.analysisCode,"AIR_EU261_DISTANCE");
 });
 
@@ -45,4 +45,33 @@ test("unknown case does not invent recovery",()=>{
  const r=analyzeCase({category:"autre",description:"Je pense avoir peut-être un problème",amount:"500"});
  assert.equal(r.opportunityLevel,"NONE");
  assert.equal(r.estimatedRecovery,null);
+});
+
+
+test("chargeback is explicit and remains verification only",()=>{
+ const r=analyzeCase({category:"chargeback",description:"Je veux contester un paiement carte non autorisé",amount:"300"});
+ assert.equal(r.opportunityLevel,"VERIFY");
+ assert.equal(r.analysisCode,"CHARGEBACK");
+ assert.equal(r.estimatedRecovery,null);
+});
+
+test("verification families never expose a recovery estimate",()=>{
+ const cases=[
+  ["commande","colis jamais reçu"],
+  ["produit défectueux","produit cassé sous garantie"],
+  ["rappel produit","produit dangereux rappelé"],
+  ["bagage","bagage perdu"],
+  ["télécom","augmentation du tarif"],
+  ["énergie","trop perçu"],
+  ["logement","charges trop perçues"],
+  ["mutuelle","remboursement manquant"],
+  ["impôt","trop payé"],
+  ["assurance","sinistre non indemnisé"],
+  ["billet avion","billet inutilisé taxes"]
+ ];
+ for(const [category,description] of cases){
+  const r=analyzeCase({category,description,amount:"999"});
+  assert.equal(r.opportunityLevel,"VERIFY",category);
+  assert.equal(r.estimatedRecovery,null,category);
+ }
 });
