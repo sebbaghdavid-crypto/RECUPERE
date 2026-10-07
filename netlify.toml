@@ -23,3 +23,12 @@
   from = "/api/portal"
   to = "/.netlify/functions/portal"
   status = 200
+
+
+[[redirects]]
+  from = "/api/cashback"
+  to = "/.netlify/functions/cashback"
+  status = 200
+
+[functions."cashback-follow-ups"]
+  schedule = "45 7 * * *"
