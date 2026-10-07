@@ -50,7 +50,7 @@ async function capitisOffers(merchantId){
   const u=new URL(base+"/merchants/"+encodeURIComponent(merchantId)+"/offers");
   u.searchParams.set("limit","100");
   const d=await json(u,{headers:{Authorization:"Bearer "+process.env.CAPITIS_API_KEY}});
-  return (d.data||d.offers||[]).filter(x=>x.isActive!==false).map(x=>({
+  const offers=(d.data||d.offers||[]).filter(x=>x.isActive!==false).map(x=>({
     id:x.id, merchantId:x.merchantId||merchantId, merchant:x.merchantName,
     title:x.title||x.brand||"Offre", description:x.description||"",
     type:x.type||"product", deeplinkUrl:x.deeplinkUrl||"", trackingUrl:x.trackingUrl||"",
@@ -60,6 +60,8 @@ async function capitisOffers(merchantId){
     priceAmount:x.priceAmount||null, priceCurrency:x.priceCurrency||null,
     imageUrl:x.imageUrl||"", provider:"capitis", active:true
   }));
+  for(const offer of offers){if(offer.id)await store.setJSON("offer/"+String(offer.id),offer)}
+  return offers;
 }
 
 async function feedico(q) {
