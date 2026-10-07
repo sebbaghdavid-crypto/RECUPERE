@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { allowPaymentRequest, getSession } from "./auth.mjs";
+import { findOwnedCaseRaw, updateCase } from "./case-store.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID || "price_1UNs7PRS9BxXjI4TydRc7JIX";
@@ -29,14 +30,7 @@ export default async (req) => {
     const caseNumber = clean(body?.caseNumber, 80);
     const session = await getSession(req);
     if (!session?.email || !caseNumber) return response({ error: "Connexion requise." }, 401);
-    let item = null;
-    for await (const page of store.list({ prefix: "case/", paginate: true })) {
-      for (const blob of page.blobs) {
-        const candidate = await store.get(blob.key, { type: "json", consistency: "strong" });
-        if (candidate?.caseNumber === caseNumber) { item = candidate; break; }
-      }
-      if (item) break;
-    }
+    const item = await findOwnedCaseRaw(session.email,caseNumber);
     if (item && String(item.email).toLowerCase() !== String(session.email).toLowerCase()) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
     if (!item) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
     if (item.payment?.status === "paid" || item.status === "PAID") {
@@ -75,23 +69,20 @@ export default async (req) => {
     }
 
     const now = new Date().toISOString();
-    item.status = "PAYMENT_REQUIRED";
-    item.payment = {
-      provider: "stripe",
-      checkoutSessionId: stripeSession.id,
-      checkoutUrl: stripeSession.url,
-      paymentStatus: "pending",
-      status: "pending",
-      amount: 990,
-      currency: "eur",
-      createdAt: now
-    };
-    item.updatedAt = now;
-    item.events = Array.isArray(item.events) ? item.events : [];
-    item.events.push({ at: now, type: "PAYMENT_CHECKOUT_CREATED", provider: "stripe", amount: 9.90 });
-    await store.setJSON(`case/${item.accessToken}`, item);
-
-    return response({ ok: true, checkoutUrl: stripeSession.url, caseNumber: item.caseNumber });
+    const result = await updateCase(item.accessToken, current => {
+      if (current.payment?.status === "paid" || current.status === "PAID") return null;
+      if (current.payment?.checkoutSessionId && current.payment?.status === "pending" && current.payment?.checkoutUrl) return current;
+      current.status = "PAYMENT_REQUIRED";
+      current.payment = { provider:"stripe", checkoutSessionId:stripeSession.id, checkoutUrl:stripeSession.url, paymentStatus:"pending", status:"pending", amount:990, currency:"eur", createdAt:now };
+      current.events = Array.isArray(current.events)?current.events:[];
+      current.events.push({at:now,type:"PAYMENT_CHECKOUT_CREATED",provider:"stripe",amount:9.90});
+      return current;
+    });
+    if(!result.ok){
+      if(result.item?.payment?.checkoutUrl)return response({ok:true,checkoutUrl:result.item.payment.checkoutUrl,caseNumber:result.item.caseNumber,reusedCheckout:true});
+      return response({error:"Le dossier a changé pendant le paiement. Réessayez."},409);
+    }
+    return response({ ok:true, checkoutUrl:result.item.payment.checkoutUrl, caseNumber:result.item.caseNumber });
   } catch (error) {
     console.error("RECUPERE payment error", error);
     return response({ error: "Erreur serveur pendant la préparation du paiement." }, 500);
