@@ -5,7 +5,9 @@ const money=v=>{const n=Number(v);return Number.isFinite(n)?Math.round(n*100)/10
 async function body(req){const ct=req.headers.get("content-type")||"";if(ct.includes("application/json"))return await req.json();const f=await req.formData();const raw=f.get("AwinTransactionPush");if(raw)try{return JSON.parse(raw)}catch{};const o={};for(const [k,v] of f.entries())o[k]=v;return o}
 export default async req=>{try{
  const expected=process.env.RECUPERE_CASHBACK_WEBHOOK_SECRET;
- if(expected){const supplied=req.headers.get("x-recupere-webhook-secret")||req.headers.get("x-recupere-signature")||""; if(supplied!==expected)return out({ok:false,error:"Unauthorized"},401);}
+ if(!expected)return out({ok:false,error:"Webhook non configuré."},503);
+ const supplied=req.headers.get("x-recupere-webhook-secret")||req.headers.get("x-recupere-signature")||"";
+ if(supplied!==expected)return out({ok:false,error:"Unauthorized"},401);
  const b=await body(req);const tx=String(b.transactionId||b.transactionID||"");const click=String(b.clickRef||"");if(!tx||!click)return out({ok:false,error:"transactionId/clickRef manquant"},400);
  const existing=await store.get("transaction/"+tx,{type:"json",consistency:"strong"});if(existing)return out({ok:true,duplicate:true});
  const clickItem=await store.get("click/"+click,{type:"json",consistency:"strong"});if(!clickItem)return out({ok:true,unmatched:true});
