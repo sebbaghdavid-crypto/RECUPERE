@@ -12,7 +12,7 @@ The application uses:
 POST /v1/end-users
 POST /v1/links
 
-Email is never sent raw to Capitis: RÉCUPÈRE hashes it with CAPITIS_ID_SALT and uses the resulting opaque external ID.
+RÉCUPÈRE sends the user's raw email only over the authenticated Capitis API connection when attaching the identifier. Capitis states that the API hashes the value in memory and does not store the raw email. CAPITIS_ID_SALT is used only by RÉCUPÈRE to derive its own opaque external ID.
 
 Sandbox only:
 - synthetic/seeded data
