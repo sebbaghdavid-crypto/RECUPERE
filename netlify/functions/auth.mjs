@@ -17,6 +17,14 @@ export async function allowMagicRequest(email,ip){
  const i=String(ip||"unknown");
  return (await rateLimit("email",e,5)) && (await rateLimit("ip",i,20));
 }
+export async function allowCaseCreate(email,ip){
+ const e=String(email||"").trim().toLowerCase();
+ const i=String(ip||"unknown");
+ return (await rateLimit("case-email",e,10)) && (await rateLimit("case-ip",i,30));
+}
+export async function allowPaymentRequest(ip){
+ return rateLimit("payment-ip",String(ip||"unknown"),10);
+}
 export async function createMagic(email){
  const normalized=String(email||"").trim().toLowerCase();
  const raw=token(),h=await hash(raw);
