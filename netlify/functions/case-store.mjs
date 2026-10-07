@@ -22,13 +22,16 @@ export async function listOwnedCases(email){
  }
  return out.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
 }
-export async function findOwnedCase(email,caseNumber){
+export async function findOwnedCaseRaw(email,caseNumber){
  if(!email||!caseNumber)return null;
  const h=await hash(email),ref=await authStore.get("owner/"+h+"/"+caseNumber,{type:"json",consistency:"strong"});
  if(!ref?.caseKey)return null;
  const item=await store.get(ref.caseKey,{type:"json",consistency:"strong"});
  if(!item||String(item.email).toLowerCase()!==String(email).toLowerCase())return null;
- const {accessToken,...safe}=item;return safe;
+ return item;
+}
+export async function findOwnedCase(email,caseNumber){
+ const item=await findOwnedCaseRaw(email,caseNumber);if(!item)return null;const {accessToken,...safe}=item;return safe;
 }
 export async function updateCase(token,mutator,retries=5){
  if(!token)return {ok:false,reason:"missing"};
