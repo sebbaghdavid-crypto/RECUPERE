@@ -34,11 +34,31 @@ async function capitis(q) {
   return (d.data||d.merchants||[]).map(x=>({
     id:x.id||x.merchantId,
     merchantId:x.id||x.merchantId,
-    name:x.name||x.title,
+    name:x.displayName||x.canonicalName||x.name||x.title,
     description:x.description||"",
-    website:x.website||x.url||"",
+    website:x.domain ? "https://"+x.domain : (x.website||x.url||""),
+    logoUrl:x.logoUrl||"",
+    offerCount:Number(x.offerCount||0),
     provider:"capitis",
-    active:x.active!==false
+    active:x.isActive!==false && x.active!==false
+  }));
+}
+
+async function capitisOffers(merchantId){
+  if(!process.env.CAPITIS_API_KEY||!merchantId) return [];
+  const base=process.env.CAPITIS_API_URL||"https://api.capitis.app/v1";
+  const u=new URL(base+"/merchants/"+encodeURIComponent(merchantId)+"/offers");
+  u.searchParams.set("limit","100");
+  const d=await json(u,{headers:{Authorization:"Bearer "+process.env.CAPITIS_API_KEY}});
+  return (d.data||d.offers||[]).filter(x=>x.isActive!==false).map(x=>({
+    id:x.id, merchantId:x.merchantId||merchantId, merchant:x.merchantName,
+    title:x.title||x.brand||"Offre", description:x.description||"",
+    type:x.type||"product", deeplinkUrl:x.deeplinkUrl||"", trackingUrl:x.trackingUrl||"",
+    commissionType:x.commissionType||null, commissionValue:x.commissionValue||null,
+    commissionCurrency:x.commissionCurrency||null, startsAt:x.startsAt||null,
+    expiresAt:x.expiresAt||null, exclusive:Boolean(x.isExclusive),
+    priceAmount:x.priceAmount||null, priceCurrency:x.priceCurrency||null,
+    imageUrl:x.imageUrl||"", provider:"capitis", active:true
   }));
 }
 
@@ -55,6 +75,12 @@ export default async req=>{
   const u=new URL(req.url);
   const q=(u.searchParams.get("q")||"").trim().slice(0,120);
   if(req.method==="GET"&&u.pathname.endsWith("/status")) return out({ok:true,providers:providerStatus()});
+  if(req.method==="GET"&&u.pathname.endsWith("/offers")){
+    const merchantId=(u.searchParams.get("merchantId")||"").trim();
+    if(!merchantId)return out({error:"merchantId requis."},400);
+    const offers=await capitisOffers(merchantId);
+    return out({ok:true,merchantId,count:offers.length,offers});
+  }
   if(req.method!=="GET") return out({error:"GET requis."},405);
   const all=[];
   for(const fn of [catuik,capitis,feedico]){try{all.push(...await fn(q))}catch(e){console.error(e.message)}}
