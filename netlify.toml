@@ -8,3 +8,13 @@
   from = "/api/cases"
   to = "/.netlify/functions/cases"
   status = 200
+
+[[redirects]]
+  from = "/api/payment"
+  to = "/.netlify/functions/payment"
+  status = 200
+
+[[redirects]]
+  from = "/api/stripe-webhook"
+  to = "/.netlify/functions/stripe-webhook"
+  status = 200
