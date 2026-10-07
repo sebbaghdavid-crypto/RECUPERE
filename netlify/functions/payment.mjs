@@ -29,6 +29,9 @@ export default async (req) => {
     if (item.payment?.status === "paid" || item.status === "PAID") {
       return response({ ok: true, alreadyPaid: true, caseNumber: item.caseNumber });
     }
+    if (item.payment?.checkoutSessionId && item.payment?.status === "pending" && item.payment?.checkoutUrl) {
+      return response({ ok: true, checkoutUrl: item.payment.checkoutUrl, caseNumber: item.caseNumber, reusedCheckout: true });
+    }
 
     const params = new URLSearchParams();
     params.set("mode", "payment");
@@ -62,6 +65,7 @@ export default async (req) => {
     item.payment = {
       provider: "stripe",
       checkoutSessionId: session.id,
+      checkoutUrl: session.url,
       paymentStatus: "pending",
       status: "pending",
       amount: 990,
