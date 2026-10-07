@@ -20,5 +20,7 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
+      - name: Run analysis regression tests
+        run: node --test qa/*.test.mjs
       - name: Validate Netlify configuration
         run: npx --yes netlify-cli@latest status >/dev/null
