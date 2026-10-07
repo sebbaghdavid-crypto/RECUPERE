@@ -45,7 +45,7 @@ export function analyzeCase(input) {
   }
 
   const train = /train|sncf|tgv|intercites|ter/.test(category + " " + description);
-  const duration = description.match(/(\d+(?:[.,]\d+)?)\s*(?:h|heure|heures)\s*(?:(\d+)\s*(?:min|minute|minutes))?/);
+  const duration = description.match(/(\d+(?:[.,]\d+)?)\s*(?:h|heure|heures)\s*(?:(\d+)\s*(?:min|minute|minutes)?)/);
   const minsOnly = description.match(/(\d+)\s*(?:min|minute|minutes)/);
   let delayMinutes = null;
   if (duration) delayMinutes = Number(duration[1].replace(",", ".")) * 60 + Number(duration[2] || 0);
