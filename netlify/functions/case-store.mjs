@@ -25,7 +25,10 @@ export async function listOwnedCases(email){
 export async function findOwnedCaseRaw(email,caseNumber){
  if(!email||!caseNumber)return null;
  const h=await hash(email),ref=await authStore.get("owner/"+h+"/"+caseNumber,{type:"json",consistency:"strong"});
- if(!ref?.caseKey)return null;
+ if(!ref?.caseKey){
+  for await(const page of store.list({prefix:"case/",paginate:true})) for(const blob of page.blobs){const item=await store.get(blob.key,{type:"json",consistency:"strong"});if(item?.caseNumber===caseNumber&&String(item.email).toLowerCase()===String(email).toLowerCase()){await indexCase(item);return item}}
+  return null;
+ }
  const item=await store.get(ref.caseKey,{type:"json",consistency:"strong"});
  if(!item||String(item.email).toLowerCase()!==String(email).toLowerCase())return null;
  return item;
