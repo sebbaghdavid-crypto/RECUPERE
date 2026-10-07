@@ -36,7 +36,21 @@ try{
  ok.style.display="block";localStorage.setItem("recupere_access_token",cd.accessToken);document.getElementById("trackToken").value=cd.accessToken;ok.scrollIntoView({behavior:"smooth",block:"center"});
 }catch(x){err.textContent=x.message||"La transmission a échoué. Vérifiez votre connexion puis réessayez.";err.style.display="block";}};
 const trackBtn=document.getElementById("trackBtn"),trackToken=document.getElementById("trackToken"),trackResult=document.getElementById("trackResult");
-function renderTrack(c){trackResult.innerHTML='<div class="status-line"><span>Dossier</span><b>'+c.caseNumber+'</b></div><div class="status-line"><span>Statut</span><span class="status-badge">'+c.status+'</span></div><div class="status-line"><span>Situation</span><b>'+((c.category||"—"))+'</b></div><div class="status-line"><span>Montant concerné</span><b>'+((c.amount||"—"))+' €</b></div><h4>Historique</h4>'+((c.events||[]).slice().reverse().map(e=>'<div class="status-line"><span>'+new Date(e.at).toLocaleString("fr-FR")+'</span><b>'+e.type+(e.status?" · "+e.status:"")+'</b></div>').join(""))}
+function renderTrack(c){
+let pay='';
+if(c.status==="PAYMENT_REQUIRED" && c.payment?.status!=="paid"){
+ pay='<div style="margin:20px 0;padding:18px;background:#edf3ed;border-radius:14px"><strong>Paiement requis</strong><p style="color:#63756f">Le paiement de 9,90 € débloque la préparation et le suivi de votre dossier.</p><button class="btn" id="payBtn">Payer 9,90 € →</button></div>';
+}
+trackResult.innerHTML='<div class="status-line"><span>Dossier</span><b>'+c.caseNumber+'</b></div><div class="status-line"><span>Statut</span><span class="status-badge">'+c.status+'</span></div><div class="status-line"><span>Situation</span><b>'+((c.category||"—"))+'</b></div><div class="status-line"><span>Montant concerné</span><b>'+((c.amount||"—"))+' €</b></div><h4>Historique</h4>'+((c.events||[]).slice().reverse().map(e=>'<div class="status-line"><span>'+new Date(e.at).toLocaleString("fr-FR")+'</span><b>'+e.type+(e.status?" · "+e.status:"")+'</b></div>').join(""))}
+async function startPayment(){
+const token=trackToken.value.trim(); if(!token)return;
+const r=await fetch("/api/payment",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({accessToken:token})});
+const d=await r.json(); if(!r.ok)throw Error(d.error||"Paiement indisponible.");
+if(d.alreadyPaid){await track();return}
+window.location.href=d.checkoutUrl;
+}
 async function track(){const token=trackToken.value.trim();if(!token){trackResult.innerHTML='<p>Entrez votre code de suivi.</p>';return}trackResult.innerHTML='<p>Recherche…</p>';try{const r=await fetch("/api/cases?token="+encodeURIComponent(token));const c=await r.json();if(!r.ok)throw Error(c.error);renderTrack(c)}catch(e){trackResult.innerHTML='<p style="color:#9b4d3e">'+(e.message||"Dossier introuvable.")+'</p>'}}
-trackBtn.onclick=track;const saved=localStorage.getItem("recupere_access_token");if(saved)trackToken.value=saved;
+trackBtn.onclick=track;
+trackResult.addEventListener("click",e=>{if(e.target.id==="payBtn")startPayment().catch(x=>alert(x.message||"Paiement indisponible."));});
+const saved=localStorage.getItem("recupere_access_token");if(saved)trackToken.value=saved;
 </script></body></html>
