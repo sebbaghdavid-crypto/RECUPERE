@@ -26,7 +26,7 @@ async function sync(){
   const click=await findClick(clickToken); if(!click){unmatched++;continue;}
   const commission=money(tx.netPayout??tx.net_payout??tx.commission??tx.commissionAmount);
   const share=Math.min(100,Math.max(0,Number(process.env.RECUPERE_CASHBACK_SHARE||80)));
-  const cashback=money(commission*share/100),newStatus=statusOf(tx);
+  const cashback=money(Math.max(0,commission*share/100)),newStatus=statusOf(tx);
   const key="transaction/"+id;
   let item=await store.get(key,{type:"json",consistency:"strong"});
   const oldStatus=item?.status||null;
@@ -42,5 +42,5 @@ async function sync(){
  return {processed,unmatched};
 }
 export default async()=>{try{console.log("RECUPERE Capitis reconciliation",await sync())}catch(e){console.error("cashback sync error",e.message)}};
-export {sync};
+export {sync,statusOf,money};
 export const config={schedule:"15 8 * * *"};
