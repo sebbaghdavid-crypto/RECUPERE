@@ -74,7 +74,7 @@ export function analyzeCase(input) {
     if (distance) {
       const fixed = distance <= 1500 ? 250 : distance <= 3500 ? 400 : 600;
       result.opportunityLevel = "VERIFY";
-      result.estimatedRecovery = fixed;
+      result.estimatedRecovery = null;
       result.confidence = 0.65;
       result.analysisCode = "AIR_EU261_DISTANCE";
       result.analysisLabel = "Indemnisation aérienne potentiellement applicable";
@@ -103,6 +103,7 @@ export function analyzeCase(input) {
     {code:"RENT_CHARGES",keys:/charges locatives|regularisation charges|location|locataire/,need:/trop|regularisation|rembourse|provision/,label:"Régularisation de charges à vérifier",summary:"Une régularisation ou un trop-perçu de charges est évoqué. Le décompte et les provisions versées sont nécessaires.",checks:["Comparer provisions et dépenses récupérables.","Vérifier le décompte annuel.","Conserver les justificatifs et demandes de régularisation."]},
     {code:"HEALTH_MISSING",keys:/cpam|assurance maladie|mutuelle|remboursement sante|soins|feuille de soins/,need:/non rembourse|oubli|manquant|pas rembourse|rejet/,label:"Remboursement santé à vérifier",summary:"Un remboursement de soins semble manquer. Le décompte, la feuille de soins et la complémentaire doivent être vérifiés.",checks:["Vérifier le décompte de remboursement.","Vérifier l'envoi ou la télétransmission de la feuille de soins.","Vérifier la part mutuelle restante."],source:"https://www.service-public.fr/particuliers/vosdroits/F11616"},
     {code:"TAX_OVERPAYMENT",keys:/impot|fisc|finances publiques|taxe fonciere|impot revenu/,need:/trop paye|trop verse|credit|remboursement|rembourser/,label:"Trop-perçu fiscal à vérifier",summary:"Un crédit ou trop-perçu fiscal est évoqué. Le détail de l'avis et la situation fiscale doivent être vérifiés.",checks:["Vérifier l'avis d'impôt et les paiements effectués.","Vérifier le solde du compte fiscal.","Vérifier si un remboursement est déjà programmé."]},
+    {code:"CHARGEBACK",keys:/chargeback|retrofacturation|carte bancaire|paiement carte|banque/,need:/contester|contest|litige|non autorise|fraude|remboursement/,label:"Chargeback potentiellement envisageable",summary:"Un paiement ou achat fait l'objet d'un litige. L'éligibilité au chargeback dépend du moyen de paiement, du motif et des délais.",checks:["Identifier le paiement, le commerçant et sa date.","Vérifier la démarche déjà effectuée auprès du commerçant.","Vérifier les règles et délais de la banque ou du réseau de carte."]},
     {code:"BANK_DEBIT",keys:/banque|prelevement|debit|carte bancaire|virement/,need:/inconnu|contest|fraud|non autorise|erreur/,label:"Opération bancaire contestable à vérifier",summary:"Une opération bancaire est contestée. L'identification de l'opération et les délais de contestation sont indispensables.",checks:["Identifier précisément l'opération et sa date.","Vérifier si elle a été autorisée ou reconnue.","Conserver relevé, preuve de contestation et échanges avec la banque."]},
     {code:"INSURANCE_CLAIM",keys:/assurance|sinistre|indemnisation|assureur/,need:/sinistre|dommage|indemnise|non indemnise|oubli|pas declare/,label:"Sinistre d'assurance à vérifier",summary:"Un sinistre ou une indemnisation manquante est évoqué. Le contrat, la déclaration et les délais doivent être contrôlés.",checks:["Identifier le contrat et les garanties.","Vérifier la date et la preuve de déclaration.","Comparer l'indemnisation reçue avec la décision de l'assureur."]},
     {code:"AIR_UNUSED_TICKET",keys:/billet avion|vol|avion|compagnie aerienne/,need:/non utilise|pas pris|billet inutilise|taxes/,label:"Taxes récupérables sur billet inutilisé à vérifier",summary:"Un billet d'avion non utilisé est signalé. Le billet, son tarif et les taxes effectivement récupérables doivent être vérifiés.",checks:["Vérifier les conditions tarifaires du billet.","Identifier les taxes et redevances concernées.","Vérifier si une demande a déjà été faite."]},
@@ -116,7 +117,6 @@ export function analyzeCase(input) {
       result.analysisLabel=rule.label;
       result.analysisSummary=rule.summary;
       rule.checks.forEach(x=>add(x,rule.source));
-      if(amount) result.estimatedRecovery=amount;
       return result;
     }
   }
