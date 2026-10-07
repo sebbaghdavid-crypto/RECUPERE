@@ -33,6 +33,8 @@ Créer dans Netlify ces variables d'environnement, disponibles pour les Function
 - **STRIPE_WEBHOOK_SECRET** — secret du webhook `https://jade-pegasus-f6e204.netlify.app/api/stripe-webhook`
 - **RECUPERE_STRIPE_PRICE_ID** — `price_1UNs7PRS9BxXjI4TydRc7JIX`
 - **RECUPERE_BASE_URL** — `https://jade-pegasus-f6e204.netlify.app`
+- **RESEND_API_KEY** — clé API Resend pour les emails transactionnels
+- **RESEND_FROM** — adresse expéditrice vérifiée dans Resend
 
 Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub.
 
@@ -40,6 +42,7 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 
 - Site : https://jade-pegasus-f6e204.netlify.app/
 - Administration : https://jade-pegasus-f6e204.netlify.app/admin/
+- Portail client : https://jade-pegasus-f6e204.netlify.app/portal/
 
 ## Architecture
 
