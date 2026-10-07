@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { allowPaymentRequest } from "./auth.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID || "price_1UNs7PRS9BxXjI4TydRc7JIX";
@@ -20,6 +21,8 @@ async function getCase(token) {
 export default async (req) => {
   try {
     if (req.method !== "POST") return response({ error: "Méthode non supportée." }, 405);
+    const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (!(await allowPaymentRequest(ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);
     if (!STRIPE_SECRET_KEY) return response({ error: "Paiement momentanément indisponible." }, 503);
 
     const body = await req.json().catch(() => null);
