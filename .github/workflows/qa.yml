@@ -20,5 +20,8 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
-      - name: Run analysis regression tests
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run regression tests
         run: node --test qa/*.test.mjs
