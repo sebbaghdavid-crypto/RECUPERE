@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import crypto from "node:crypto";
+import { sendCustomerEmail } from "./notifications.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
@@ -59,6 +60,7 @@ export default async (req) => {
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
       await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
+      await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation."});
     } else if (event.type==="checkout.session.async_payment_succeeded") {
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString()};
