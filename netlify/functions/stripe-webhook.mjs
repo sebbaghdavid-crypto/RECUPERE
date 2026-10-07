@@ -68,13 +68,21 @@ export default async (req) => {
       const isNewPaymentEvent=await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
       if(isNewPaymentEvent) await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation."});
     } else if (event.type==="checkout.session.async_payment_succeeded") {
+      const paidAmount=Number(session.amount_total);
+      const paidCurrency=String(session.currency||"").toLowerCase();
+      if (paidAmount !== 990 || paidCurrency !== "eur") {
+        console.error("RECUPERE unexpected async Stripe amount/currency", {paidAmount, paidCurrency, caseNumber:item.caseNumber});
+        return response({error:"Paiement invalide."},400);
+      }
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString()};
       await saveCase(item,{type:"PAYMENT_CONFIRMED_ASYNC",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
     } else if (event.type==="checkout.session.async_payment_failed") {
+      if (item.payment?.checkoutSessionId !== session.id) return response({received:true,ignored:"stale_checkout_session"});
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"failed",status:"failed"};
       await saveCase(item,{type:"PAYMENT_FAILED",provider:"stripe",checkoutSessionId:session.id});
     } else if (event.type==="checkout.session.expired") {
+      if (item.payment?.checkoutSessionId !== session.id) return response({received:true,ignored:"stale_checkout_session"});
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"expired",status:"expired"};
       await saveCase(item,{type:"PAYMENT_EXPIRED",provider:"stripe",checkoutSessionId:session.id});
     }
