@@ -35,10 +35,10 @@ async function saveCase(item, event) {
   const now=new Date().toISOString();
   item.updatedAt=now;
   item.events=Array.isArray(item.events)?item.events:[];
-  if (!item.events.some(e=>e.type===event.type && e.checkoutSessionId===event.checkoutSessionId)) {
-    item.events.push({at:now,...event});
-  }
+  const duplicate=item.events.some(e=>e.type===event.type && e.checkoutSessionId===event.checkoutSessionId);
+  if (!duplicate) item.events.push({at:now,...event});
   await store.setJSON(`case/${item.accessToken}`, item);
+  return !duplicate;
 }
 
 export default async (req) => {
@@ -59,8 +59,8 @@ export default async (req) => {
     if (event.type==="checkout.session.completed" && session.payment_status==="paid") {
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
-      await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
-      await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation."});
+      const isNewPaymentEvent=await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
+      if(isNewPaymentEvent) await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation."});
     } else if (event.type==="checkout.session.async_payment_succeeded") {
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString()};
