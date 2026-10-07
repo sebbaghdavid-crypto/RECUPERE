@@ -34,8 +34,10 @@ async function capitisUser(email){
  const key="capitis-user/"+externalId;
  const cached=await store.get(key,{type:"json",consistency:"strong"});
  if(cached?.id)return cached;
- const d=await capitisRequest("/end-users",{method:"POST",body:JSON.stringify({external_id:externalId,email})});
+ const d=await capitisRequest("/end-users",{method:"POST",body:JSON.stringify({external_id:externalId})});
  const user={id:d.id||d.end_user_id||d.external_id||externalId,externalId};
+ const identifier=await capitisRequest("/end-users/"+encodeURIComponent(user.id)+"/identifiers",{method:"POST",body:JSON.stringify({email})}).catch(e=>null);
+ if(identifier===null) throw Error("CAPITIS_IDENTIFIER_ERROR");
  await store.setJSON(key,user);
  return user;
 }
