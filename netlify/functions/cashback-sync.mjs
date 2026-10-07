@@ -13,25 +13,7 @@ const statusOf=x=>{
 };
 async function findClick(token){
  if(!token)return null;
- for await(const page of store.list({prefix:"click/",paginate:true})){
-  for(const b of page.blobs){const c=await store.get(b.key,{type:"json",consistency:"strong"});if(c?.clickToken===token)return c;}
- }
- return null;
-}
-async function walletMove(item,oldStatus,newStatus){
- if(!item.email||oldStatus===newStatus)return;
- const key="wallet/"+safeEmail(item.email);
- const w=await store.get(key,{type:"json",consistency:"strong"})||{email:item.email,pending:0,approved:0,paid:0,transactions:[]};
- const a=money(item.cashbackAmount);
- if(oldStatus==="PENDING")w.pending=money(w.pending-a);
- if(oldStatus==="APPROVED")w.approved=money(w.approved-a);
- if(oldStatus==="PAID")w.paid=money(w.paid-a);
- if(newStatus==="PENDING")w.pending=money(w.pending+a);
- if(newStatus==="APPROVED")w.approved=money(w.approved+a);
- if(newStatus==="PAID")w.paid=money(w.paid+a);
- w.transactions=[...new Set([...(w.transactions||[]),item.transactionId])].slice(-100);
- w.updatedAt=new Date().toISOString();
- await store.setJSON(key,w);
+ return await store.get("click-token/"+token,{type:"json",consistency:"strong"})||null;
 }
 async function sync(){
  if(!process.env.CAPITIS_API_KEY)return {processed:0,reason:"capitis_not_configured"};
@@ -52,9 +34,8 @@ async function sync(){
    item={transactionId:id,clickToken,clickref:click.clickref,offerId:click.offerId,merchant:click.merchant,email:click.email,
     transactionAmount:money(tx.saleAmount??tx.amount),commission,cashbackRate:share,cashbackAmount:cashback,
     currency:String(tx.currency||tx.currencyCode||"EUR"),status:newStatus,source:"CAPITIS",createdAt:new Date().toISOString()};
-   await walletMove(item,null,newStatus);
-  }else if(oldStatus!==newStatus){
-   item.commission=commission;item.cashbackAmount=cashback;await walletMove(item,oldStatus,newStatus);item.status=newStatus;
+  }else{
+   item.commission=commission;item.cashbackAmount=cashback;item.status=newStatus;
   }
   item.rawStatus=String(tx.status||tx.state||"");item.updatedAt=new Date().toISOString();await store.setJSON(key,item);processed++;
  }
