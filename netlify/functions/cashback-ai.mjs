@@ -40,6 +40,28 @@ async function remember(email, query, resultIds) {
   });
 }
 
+async function aiExplain(query, ranked) {
+  const key = process.env.OPENAI_API_KEY;
+  const model = process.env.RECUPERE_AI_MODEL;
+  if (!key || !model || !ranked.length) return null;
+  const payload = {
+    model,
+    input: [
+      { role: "system", content: "Tu es l'assistant shopping de RÉCUPÈRE. Tu ne dois jamais inventer un marchand, un prix, un taux de cashback ou une économie. Classe uniquement les offres fournies. Réponds en français. Retourne un JSON strict avec summary et recommendations, où recommendations est un tableau d'objets {id,reason}." },
+      { role: "user", content: JSON.stringify({ query, offers: ranked.map(o => ({ id:o.id, merchant:o.merchant, category:o.category, cashbackRate:o.cashbackRate, description:o.description })) }) }
+    ]
+  };
+  const r = await fetch("https://api.openai.com/v1/responses", {
+    method:"POST",
+    headers:{Authorization:"Bearer "+key,"content-type":"application/json"},
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok) return null;
+  const d=await r.json();
+  const text=d.output_text || d.output?.flatMap(x=>x.content||[]).map(x=>x.text||"").join("") || "";
+  try{return JSON.parse(text)}catch{return null}
+}
+
 export default async req => {
   try {
     if (req.method !== "POST") return out({ error: "POST requis." }, 405);
@@ -55,13 +77,15 @@ export default async req => {
       .slice(0, 12);
 
     await remember(body.email, query, ranked.map(o => o.id));
+    const ai=await aiExplain(query, ranked);
     return out({
       ok: true,
-      engine: "RECUPERE-SMART-CASHBACK-V1",
+      engine: ai ? "RECUPERE-AI-CASHBACK-V2" : "RECUPERE-SMART-CASHBACK-V1",
       query,
+      summary: ai?.summary || "Voici les offres disponibles les plus pertinentes selon ta recherche.",
       results: ranked.map(({ aiScore, ...o }) => ({
         ...o,
-        recommendation: aiScore >= 20 ? "Très pertinent" : "Pertinent"
+        recommendation: ai?.recommendations?.find(x=>String(x.id)===String(o.id))?.reason || (aiScore >= 20 ? "Très pertinent" : "Pertinent")
       }))
     });
   } catch (e) {
