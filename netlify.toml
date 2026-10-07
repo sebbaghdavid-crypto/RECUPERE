@@ -3,3 +3,8 @@
 
 [build.processing]
   skip_processing = false
+
+[[redirects]]
+  from = "/api/cases"
+  to = "/.netlify/functions/cases"
+  status = 200
