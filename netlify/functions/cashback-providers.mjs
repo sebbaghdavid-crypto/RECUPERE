@@ -26,10 +26,20 @@ async function catuik(q) {
 
 async function capitis(q) {
   if(!process.env.CAPITIS_API_KEY) return [];
-  const u=new URL(process.env.CAPITIS_API_URL||"https://api.capitis.app/v1/merchants");
-  if(q) u.searchParams.set("search",q);
+  const base=process.env.CAPITIS_API_URL||"https://api.capitis.app/v1";
+  const u=new URL(q ? base+"/merchants/search" : base+"/merchants");
+  if(q) u.searchParams.set("q",q);
+  u.searchParams.set("limit","100");
   const d=await json(u,{headers:{Authorization:"Bearer "+process.env.CAPITIS_API_KEY}});
-  return (d.merchants||d.data||[]).map(x=>({...x,provider:"capitis"}));
+  return (d.data||d.merchants||[]).map(x=>({
+    id:x.id||x.merchantId,
+    merchantId:x.id||x.merchantId,
+    name:x.name||x.title,
+    description:x.description||"",
+    website:x.website||x.url||"",
+    provider:"capitis",
+    active:x.active!==false
+  }));
 }
 
 async function feedico(q) {
@@ -54,7 +64,7 @@ export default async req=>{
     if(!id||seen.has(id)) return false; seen.add(id); return true;
   }).slice(0,100);
   await store.setJSON("catalog/latest",{updatedAt:new Date().toISOString(),query:q,count:merchants.length,merchants});
-  return out({ok:true,query:q,count:merchants.length,providers:providerStatus(),merchants});
+  return out({ok:true,query:q,count:merchants.length,providers:providerStatus(),merchants,source:"capitis-catalog"});
  }catch(e){console.error(e);return out({error:"Catalogue indisponible."},500)}
 };
 export const config={path:"/api/cashback-providers"};
