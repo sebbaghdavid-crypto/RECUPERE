@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { allowPaymentRequest } from "./auth.mjs";
+import { allowPaymentRequest, getSession } from "./auth.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID || "price_1UNs7PRS9BxXjI4TydRc7JIX";
@@ -26,9 +26,19 @@ export default async (req) => {
     if (!STRIPE_SECRET_KEY) return response({ error: "Paiement momentanément indisponible." }, 503);
 
     const body = await req.json().catch(() => null);
-    const token = clean(body?.accessToken, 100);
-    const item = await getCase(token);
-    if (!item) return response({ error: "Dossier introuvable." }, 404);
+    const caseNumber = clean(body?.caseNumber, 80);
+    const session = await getSession(req);
+    if (!session?.email || !caseNumber) return response({ error: "Connexion requise." }, 401);
+    let item = null;
+    for await (const page of store.list({ prefix: "case/", paginate: true })) {
+      for (const blob of page.blobs) {
+        const candidate = await store.get(blob.key, { type: "json", consistency: "strong" });
+        if (candidate?.caseNumber === caseNumber) { item = candidate; break; }
+      }
+      if (item) break;
+    }
+    if (item && String(item.email).toLowerCase() !== String(session.email).toLowerCase()) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
+    if (!item) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
     if (item.payment?.status === "paid" || item.status === "PAID") {
       return response({ ok: true, alreadyPaid: true, caseNumber: item.caseNumber });
     }
