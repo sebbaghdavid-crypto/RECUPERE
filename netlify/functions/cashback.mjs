@@ -65,8 +65,9 @@ export default async req=>{try{
    if(!b||b.action!=="click")return out({error:"Action invalide."},400);
    const o=(await offers()).find(x=>String(x.id)===clean(b.offerId,100));
    if(!o)return out({error:"Offre introuvable."},404);
-   const email=clean(b.email,254).toLowerCase();
-   if(o.provider==="capitis" && (!email || !email.includes("@"))) return out({error:"Email requis pour activer le cashback."},400);
+   const session=await getSession(req);
+   if(!session?.email) return out({error:"Connexion requise."},401);
+   const email=clean(session.email,254).toLowerCase();
    const clickref="rcp_"+crypto.randomUUID().replaceAll("-","").slice(0,24);
    let trackingUrl=null,clickToken=null;
    if(o.provider==="capitis"){
