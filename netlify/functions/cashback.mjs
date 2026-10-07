@@ -34,7 +34,7 @@ async function capitisUser(email){
  const key="capitis-user/"+externalId;
  const cached=await store.get(key,{type:"json",consistency:"strong"});
  if(cached?.id)return cached;
- const d=await capitisRequest("/end-users",{method:"POST",body:JSON.stringify({external_id:externalId})});
+ const d=await capitisRequest("/end-users",{method:"POST",body:JSON.stringify({external_id:externalId,email})});
  const user={id:d.id||d.end_user_id||d.external_id||externalId,externalId};
  await store.setJSON(key,user);
  return user;
