@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {canTransition} from "../netlify/functions/case-store.mjs";
+assert.equal(canTransition("PAYMENT_REQUIRED","PAID"),true);
+assert.equal(canTransition("PAID","CLAIM_PREPARED"),true);
+assert.equal(canTransition("CLAIM_PREPARED","SENT"),true);
+assert.equal(canTransition("SENT","FOLLOW_UP"),true);
+assert.equal(canTransition("SENT","RECOVERED"),true);
+assert.equal(canTransition("FOLLOW_UP","RECOVERED"),true);
+assert.equal(canTransition("RECOVERED","CLOSED"),true);
+assert.equal(canTransition("NEW","RECOVERED"),false);
+assert.equal(canTransition("PAYMENT_REQUIRED","SENT"),false);
+assert.equal(canTransition("PAID","RECOVERED"),false);
+assert.equal(canTransition("CLOSED","PAID"),false);
+assert.equal(canTransition("NO_OPPORTUNITY","PAID"),false);
+console.log("case-state tests passed");
