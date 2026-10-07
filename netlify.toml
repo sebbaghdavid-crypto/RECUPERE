@@ -24,11 +24,23 @@
   to = "/.netlify/functions/portal"
   status = 200
 
-
 [[redirects]]
   from = "/api/cashback"
   to = "/.netlify/functions/cashback"
   status = 200
 
+[[redirects]]
+  from = "/api/cashback-webhook"
+  to = "/.netlify/functions/cashback-webhook"
+  status = 200
+
+[[redirects]]
+  from = "/api/cashback-wallet"
+  to = "/.netlify/functions/cashback-wallet"
+  status = 200
+
 [functions."cashback-follow-ups"]
   schedule = "45 7 * * *"
+
+[functions."cashback-sync"]
+  schedule = "15 8 * * *"
