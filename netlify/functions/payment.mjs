@@ -40,7 +40,7 @@ export default async (req) => {
     params.set("mode", "payment");
     params.set("line_items[0][price]", PRICE_ID);
     params.set("line_items[0][quantity]", "1");
-    params.set("success_url", `${BASE_URL}/?payment=success&case=${encodeURIComponent(item.caseNumber)}&token=${encodeURIComponent(item.accessToken)}#suivi`);
+    params.set("success_url", `${BASE_URL}/?payment=success&case=${encodeURIComponent(item.caseNumber)}#suivi`);
     params.set("cancel_url", `${BASE_URL}/?payment=cancelled&case=${encodeURIComponent(item.caseNumber)}#suivi`);
     params.set("customer_creation", "always");
     params.set("customer_email", item.email);
