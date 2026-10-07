@@ -12,7 +12,6 @@ export default async req=>{try{
  const commission=money(b.commission);const share=Math.min(100,Math.max(0,Number(process.env.RECUPERE_CASHBACK_SHARE||80)));const cashback=money(commission*share/100);
  const item={transactionId:tx,clickref:click,offerId:clickItem.offerId,merchant:clickItem.merchant,email:clickItem.email,transactionAmount:money(b.transactionAmount),commission,cashbackRate:share,cashbackAmount:cashback,currency:String(b.transactionCurrency||"EUR"),status:"PENDING",createdAt:new Date().toISOString(),source:"AWIN"};
  await store.setJSON("transaction/"+tx,item);
- if(clickItem.email){const key="wallet/"+clickItem.email.replace(/[^a-z0-9@._-]/gi,"_");const w=await store.get(key,{type:"json",consistency:"strong"})||{email:clickItem.email,pending:0,approved:0,paid:0,transactions:[]};w.pending=money(w.pending+cashback);w.transactions=[...(w.transactions||[]),tx].slice(-100);w.updatedAt=new Date().toISOString();await store.setJSON(key,w)}
  return out({ok:true,transactionId:tx,status:"PENDING",cashbackAmount:cashback},201);
 }catch(e){console.error("cashback webhook",e);return out({ok:false,error:"Webhook error"},500)}};
 export const config={path:"/api/cashback-webhook"};
