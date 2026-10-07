@@ -1,5 +1,5 @@
 import {getStore} from "@netlify/blobs";
-import {getSession} from "../netlify/functions/auth.mjs";
+import {getSession} from "./auth.mjs";
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
 const out=(b,s=200)=>new Response(JSON.stringify(b),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 export default async req=>{try{
