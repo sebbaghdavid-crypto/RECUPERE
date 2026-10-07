@@ -1,0 +1,24 @@
+name: RÉCUPÈRE QA
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -e
+          for f in netlify/functions/*.mjs; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+      - name: Validate Netlify configuration
+        run: npx --yes netlify-cli@latest status >/dev/null
