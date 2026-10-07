@@ -12,6 +12,9 @@ RÉCUPÈRE est un service français de détection, préparation et suivi de dém
 - code privé de suivi
 - suivi client
 - administration des dossiers
+- paiement Stripe Checkout à 9,90 € par dossier
+- confirmation de paiement par webhook Stripe côté serveur
+- facture Stripe créée lors du Checkout
 - recherche et filtres
 - changement de statut
 - historique des événements
@@ -23,7 +26,13 @@ Le dépôt est connecté à Netlify : les pushes sur `main` déclenchent les dé
 
 ## Configuration indispensable
 
-Créer dans Netlify une variable d'environnement **RECUPERE_ADMIN_KEY**, disponible pour les Functions.
+Créer dans Netlify ces variables d'environnement, disponibles pour les Functions :
+
+- **RECUPERE_ADMIN_KEY** — clé secrète de l'administration
+- **STRIPE_SECRET_KEY** — clé secrète API Stripe du compte RÉCUPÈRE
+- **STRIPE_WEBHOOK_SECRET** — secret du webhook `https://jade-pegasus-f6e204.netlify.app/api/stripe-webhook`
+- **RECUPERE_STRIPE_PRICE_ID** — `price_1UNs7PRS9BxXjI4TydRc7JIX`
+- **RECUPERE_BASE_URL** — `https://jade-pegasus-f6e204.netlify.app`
 
 Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub.
 
@@ -43,9 +52,8 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 
 1. emails transactionnels
 2. authentification client
-3. PayPal
-4. facturation
-5. moteur d'analyse par catégorie
-6. préparation des réclamations
-7. relances automatiques
-8. pilote utilisateurs réels
+3. moteur d'analyse par catégorie
+4. préparation des réclamations
+5. relances automatiques
+6. portail client complet
+7. pilote utilisateurs réels
