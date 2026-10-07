@@ -57,6 +57,12 @@ export default async (req) => {
     if (!item) return response({ received:true });
 
     if (event.type==="checkout.session.completed" && session.payment_status==="paid") {
+      const paidAmount=Number(session.amount_total);
+      const paidCurrency=String(session.currency||"").toLowerCase();
+      if (paidAmount !== 990 || paidCurrency !== "eur") {
+        console.error("RECUPERE unexpected Stripe amount/currency", {paidAmount, paidCurrency, caseNumber:item.caseNumber});
+        return response({error:"Paiement invalide."},400);
+      }
       item.status="PAID";
       item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
       const isNewPaymentEvent=await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90});
