@@ -27,6 +27,8 @@ export async function allowCaseCreate(email,ip){
  return (await rateLimit("case-email",e,10)) && (await rateLimit("case-ip",i,30));
 }
 export async function allowPaymentRequest(ip){return rateLimit("payment-ip",String(ip||"unknown"),10)}
+export async function allowAdminRequest(ip){return rateLimit("admin-ip",String(ip||"unknown"),20)}
+export async function allowCashbackWebhookRequest(ip){return rateLimit("cashback-webhook-ip",String(ip||"unknown"),30)}
 export async function createMagic(email){
  const normalized=String(email||"").trim().toLowerCase(),raw=token(),h=await hash(raw);
  await store.setJSON("magic/"+h,{email:normalized,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+900000).toISOString(),used:false});
