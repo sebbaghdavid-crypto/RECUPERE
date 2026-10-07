@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { getSession } from "./auth.mjs";
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
 const out=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
