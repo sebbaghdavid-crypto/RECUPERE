@@ -60,3 +60,22 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 5. relances automatiques
 6. portail client complet
 7. pilote utilisateurs réels
+
+
+## Cashback autonome
+
+RÉCUPÈRE dispose maintenant d'un moteur cashback prêt à connecter à un réseau d'affiliation :
+- catalogue d'offres via `RECUPERE_CASHBACK_OFFERS`
+- génération de liens Awin via `AWIN_API_TOKEN` + `AWIN_PUBLISHER_ID`
+- clickref unique pour rattacher une vente à un utilisateur
+- webhook `/api/cashback-webhook` pour recevoir les transactions
+- portefeuille `/api/cashback-wallet?email=...`
+- synchronisation quotidienne des statuts de transactions
+- part reversée configurable via `RECUPERE_CASHBACK_SHARE` (défaut 80 % de la commission)
+- seuil indicatif de paiement via `RECUPERE_MIN_PAYOUT` (défaut 10 €)
+
+### Variables supplémentaires
+
+`AWIN_API_TOKEN`, `AWIN_PUBLISHER_ID`, `RECUPERE_CASHBACK_OFFERS`, `RECUPERE_CASHBACK_SHARE`, `RECUPERE_MIN_PAYOUT`.
+
+Le callback Awin à configurer est `https://jade-pegasus-f6e204.netlify.app/api/cashback-webhook`. Le taux affiché côté utilisateur doit provenir d'un programme partenaire réellement actif : aucune commission ou récupération n'est garantie avant validation du réseau.
