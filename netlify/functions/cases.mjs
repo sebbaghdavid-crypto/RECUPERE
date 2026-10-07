@@ -81,7 +81,7 @@ export default async (req) => {
           to:item.email,name:item.name,caseNumber:item.caseNumber,
           subject:`RÉCUPÈRE — mise à jour de votre dossier ${item.caseNumber}`,
           title:"Votre dossier a été mis à jour",
-          body:`Nouveau statut : ${status}${body.note ? "\n\nNote : "+clean(body.note,1000) : ""}`
+          body:`Nouveau statut : ${item.status}${body.note ? "\n\nNote : "+clean(body.note,1000) : ""}`
         });
         const { accessToken, ...safe } = item;
         return response(safe);
