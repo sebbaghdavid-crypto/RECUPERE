@@ -4,7 +4,7 @@
 
 Le dépôt contient maintenant la landing pilot, un formulaire Netlify avec pièce jointe, une API serverless et un stockage persistant Netlify Blobs.
 
-Le produit n'est **pas encore un SaaS complet** : authentification client, paiements, facturation et notifications transactionnelles sont les prochaines briques.
+Le produit n'est **pas encore un SaaS complet** : authentification client, emails transactionnels et moteur d'analyse métier restent à finaliser. Le paiement Stripe Checkout est désormais branché côté produit, avec confirmation serveur par webhook.
 
 ## Fonctionnalités désormais codées
 
@@ -114,6 +114,7 @@ NEW -> ANALYSIS -> OPPORTUNITY -> PAYMENT_REQUIRED -> PAID -> CLAIM_PREPARED -> 
 ## Sécurité actuelle
 
 - la clé admin n'est jamais stockée dans le dépôt
+- les clés Stripe et le secret de webhook ne sont jamais stockés dans le dépôt
 - la clé admin est lue côté fonction via variable d'environnement
 - le code privé de suivi n'est pas renvoyé par l'API publique après consultation
 - aucune donnée bancaire ou mot de passe n'est demandé
@@ -126,13 +127,24 @@ RECUPERE_ADMIN_KEY
 
 Cette variable doit être définie côté Netlify avec une valeur secrète et disponible pour les Functions. Elle ne doit jamais être écrite dans GitHub.
 
+## Paiement Stripe désormais codé
+
+- produit Stripe réel : `prod_VOfS3m2r3SXNyr`
+- prix réel : `price_1UNs7PRS9BxXjI4TydRc7JIX`
+- montant : 9,90 € TTC
+- Checkout hébergé Stripe
+- métadonnées liées au numéro/code du dossier
+- confirmation uniquement via webhook serveur
+- passage automatique à `PAID` après confirmation Stripe
+- événements d'échec/expiration enregistrés
+- création de facture activée dans Checkout
+
 ## Prochaine étape produit
 
 1. notifications email client/admin
 2. authentification client
-3. paiement PayPal
-4. facturation
-5. analyse métier vérifiable par catégorie
-6. préparation des réclamations
-7. relances automatiques
-8. pilote de 10 utilisateurs réels
+3. analyse métier vérifiable par catégorie
+4. préparation des réclamations
+5. relances automatiques
+6. portail client complet
+7. pilote de 10 utilisateurs réels
