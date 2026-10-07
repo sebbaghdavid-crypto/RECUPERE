@@ -79,19 +79,19 @@ export default async (req) => {
           return response({ error: "Le dossier doit être payé avant de préparer la réclamation." }, 409);
         }
         const claim = buildClaim(item);
-        item.claim = claim;
-        item.status = "CLAIM_PREPARED";
-        item.updatedAt = new Date().toISOString();
-        item.events = Array.isArray(item.events) ? item.events : [];
-        item.events.push({ at: item.updatedAt, type: "CLAIM_PREPARED" });
-        await store.setJSON(`case/${item.accessToken}`, item);
-        await sendCustomerEmail({
-          to:item.email,name:item.name,caseNumber:item.caseNumber,
-          subject:`RÉCUPÈRE — mise à jour de votre dossier ${item.caseNumber}`,
-          title:"Votre dossier a été mis à jour",
-          body:`Nouveau statut : ${item.status}${body.note ? "\n\nNote : "+clean(body.note,1000) : ""}`
+        const result = await updateCase(item.accessToken,current=>{
+          if(!["PAID","CLAIM_PREPARED"].includes(current.status))return null;
+          current.claim=claim;
+          if(current.status==="PAID"){
+            current.status="CLAIM_PREPARED";
+            current.events=Array.isArray(current.events)?current.events:[];
+            current.events.push({at:new Date().toISOString(),type:"CLAIM_PREPARED"});
+          }
+          return current;
         });
-        const { accessToken, ...safe } = item;
+        if(!result.ok)return response({error:"Conflit ou transition interdite. Réessayez."},409);
+        await sendCustomerEmail({to:result.item.email,name:result.item.name,caseNumber:result.item.caseNumber,subject:`RÉCUPÈRE — mise à jour de votre dossier ${result.item.caseNumber}`,title:"Votre dossier a été mis à jour",body:`Nouveau statut : ${result.item.status}${body.note ? "\n\nNote : "+clean(body.note,1000) : ""}`,idempotencyKey:`claim-prepared|${result.item.caseNumber}`});
+        const { accessToken, ...safe } = result.item;
         return response(safe);
       }
 
