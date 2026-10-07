@@ -1,11 +1,12 @@
 import {getStore} from "@netlify/blobs";
 import {createMagic,consumeMagic,getSession,sessionCookie,allowMagicRequest} from "./auth.mjs";
+import {listOwnedCases,findOwnedCase} from "./case-store.mjs";
 const store=getStore({name:"recupere-cases",region:"eu-central-1"});
 const BASE_URL=process.env.RECUPERE_BASE_URL||"https://jade-pegasus-f6e204.netlify.app";
 const clean=v=>String(v??"").trim().slice(0,254);
 const response=(b,s=200,h={})=>new Response(JSON.stringify(b),{status:s,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...h}});
-async function allCases(email){const out=[];for await(const page of store.list({prefix:"case/",paginate:true})){for(const item of page.blobs){const c=await store.get(item.key,{type:"json",consistency:"strong"});if(c&&String(c.email).toLowerCase()===email){const {accessToken,...safe}=c;out.push(safe)}}}return out.sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")))}
-async function findCase(n,email){for await(const page of store.list({prefix:"case/",paginate:true})){for(const item of page.blobs){const c=await store.get(item.key,{type:"json",consistency:"strong"});if(c?.caseNumber===n&&String(c.email).toLowerCase()===email){const {accessToken,...safe}=c;return safe}}}return null}
+async function allCases(email){return listOwnedCases(email)}
+async function findCase(n,email){return findOwnedCase(email,n)}
 async function emailLink(email){const cases=await allCases(email);if(!cases.length)return;const key=process.env.RESEND_API_KEY,from=process.env.RESEND_FROM;if(!key||!from)throw Error("AUTH_EMAIL_NOT_CONFIGURED");const raw=await createMagic(email),link=BASE_URL+"/portal/?magic="+encodeURIComponent(raw);const r=await fetch("https://api.resend.com/emails",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({from,to:email,subject:"RÉCUPÈRE — votre lien de connexion",html:`<p>Accédez à votre espace RÉCUPÈRE :</p><p><a href="${link}">Se connecter</a></p><p>Ce lien expire dans 15 minutes et ne peut être utilisé qu'une seule fois.</p>`})});if(!r.ok)throw Error("AUTH_EMAIL_ERROR")}
 export default async req=>{try{const u=new URL(req.url);if(req.method==="POST"){const b=await req.json().catch(()=>null);if(b?.action==="request_link"){const email=clean(b.email).toLowerCase();if(!email||!email.includes("@"))return response({error:"Adresse e-mail invalide."},400);
  const ip=req.headers.get("x-nf-client-connection-ip")||req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||"unknown";
