@@ -50,7 +50,8 @@ export default async (req) => {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Idempotency-Key": `recupere-checkout-${item.accessToken}`
       },
       body: params
     });
