@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { analyzeCase } from "./analysis.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -89,7 +90,7 @@ export default async (req) => {
       const caseNumber = `REC-${new Date().getFullYear()}-${crypto.randomUUID().slice(0,6).toUpperCase()}`;
       const now = new Date().toISOString();
 
-      const item = {
+      const base = {
         caseNumber,
         accessToken: token,
         name,
@@ -107,9 +108,26 @@ export default async (req) => {
         updatedAt: now,
         events: [{ at: now, type: "CASE_CREATED" }]
       };
-
+      const analysis = analyzeCase(base);
+      const item = {
+        ...base,
+        status: analysis.opportunityLevel === "STRONG" ? "PAYMENT_REQUIRED" : "ANALYSIS",
+        opportunityLevel: analysis.opportunityLevel,
+        estimatedRecovery: analysis.estimatedRecovery,
+        confidence: analysis.confidence,
+        analysisCode: analysis.analysisCode,
+        analysisLabel: analysis.analysisLabel,
+        analysisSummary: analysis.analysisSummary,
+        analysisChecks: analysis.checks,
+        analysisSources: analysis.sources,
+        analyzedAt: now,
+        events: [
+          ...base.events,
+          { at: now, type: "ANALYSIS_COMPLETED", code: analysis.analysisCode, opportunityLevel: analysis.opportunityLevel, estimatedRecovery: analysis.estimatedRecovery, confidence: analysis.confidence }
+        ]
+      };
       await store.setJSON(`case/${token}`, item);
-      return response({ ok: true, caseNumber, accessToken: token, status: item.status }, 201);
+      return response({ ok: true, caseNumber, accessToken: token, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel }, 201);
     }
 
     return response({ error: "Méthode non supportée." }, 405);
