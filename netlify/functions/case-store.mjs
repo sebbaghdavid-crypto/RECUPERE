@@ -48,30 +48,11 @@ export async function updateCase(token,mutator,retries=5){
  }
  return {ok:false,reason:"conflict"};
 }
-const transitions={
- NEW:new Set(["ANALYSIS","PAYMENT_REQUIRED","OPPORTUNITY","NO_OPPORTUNITY","INCOMPLETE","CANCELLED"]),
- ANALYSIS:new Set(["OPPORTUNITY","PAYMENT_REQUIRED","NO_OPPORTUNITY","INCOMPLETE","CANCELLED"]),
- OPPORTUNITY:new Set(["PAYMENT_REQUIRED","NO_OPPORTUNITY","INCOMPLETE","CANCELLED"]),
- PAYMENT_REQUIRED:new Set(["PAID","CANCELLED","REFUNDED"]),
- PAID:new Set(["CLAIM_PREPARED","CANCELLED","REFUNDED"]),
- CLAIM_PREPARED:new Set(["SENT","CANCELLED","REFUNDED"]),
- SENT:new Set(["FOLLOW_UP","RECOVERED","CLOSED","CANCELLED","REFUNDED"]),
- FOLLOW_UP:new Set(["FOLLOW_UP","RECOVERED","CLOSED","CANCELLED","REFUNDED"]),
- RECOVERED:new Set(["CLOSED"]),
- CLOSED:new Set([]),
- NO_OPPORTUNITY:new Set(["CLOSED"]),
- INCOMPLETE:new Set(["ANALYSIS","CANCELLED"]),
- REFUNDED:new Set(["CLOSED"]),
- CANCELLED:new Set(["CLOSED"])
-};
-export function canTransition(from,to){return from===to||Boolean(transitions[from]?.has(to))}
+import {canTransition} from "./case-state.mjs";
+export {canTransition};
 export async function transitionCase(token,to,event={},retries=5){
  return updateCase(token,item=>{
   if(!canTransition(item.status,to))return null;
-  const now=new Date().toISOString();
-  item.status=to;
-  item.events=Array.isArray(item.events)?item.events:[];
-  item.events.push({at:now,type:event.type||"STATUS_CHANGED",status:to,...event});
-  return item;
+  const now=new Date().toISOString();item.status=to;item.events=Array.isArray(item.events)?item.events:[];item.events.push({at:now,type:event.type||"STATUS_CHANGED",status:to,...event});return item;
  },retries);
 }
