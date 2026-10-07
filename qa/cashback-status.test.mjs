@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { statusOf, money } from "../netlify/functions/cashback-sync.mjs";
+import { statusOf, money } from "../netlify/functions/cashback-ledger.mjs";
 
 test("only validated statuses can become APPROVED",()=>{
   assert.equal(statusOf({status:"APPROVED"}),"APPROVED");
