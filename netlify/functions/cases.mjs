@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { allowCaseCreate } from "./auth.mjs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
@@ -109,6 +110,8 @@ export default async (req) => {
       }
 
       const email = clean(body.email, 254).toLowerCase();
+      const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      if (!(await allowCaseCreate(email, ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);
       const name = clean(body.name, 120);
       if (!name || !email || !email.includes("@")) return response({ error: "Nom et email obligatoires." }, 400);
 
