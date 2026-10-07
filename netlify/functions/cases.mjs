@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { allowCaseCreate } from "./auth.mjs";
+import { allowCaseCreate, allowAdminRequest } from "./auth.mjs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
@@ -14,6 +14,8 @@ function response(body, status=200) {
 function clean(value, max=4000) {
   return String(value ?? "").trim().slice(0, max);
 }
+
+function ipFor(req) { return req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"; }
 
 function adminOk(req) {
   const expected = process.env.RECUPERE_ADMIN_KEY;
@@ -43,6 +45,7 @@ export default async (req) => {
     const url = new URL(req.url);
 
     if (req.method === "GET") {
+      const adminIp = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       const token = url.searchParams.get("token");
       if (token) {
         const item = await getCase(token);
@@ -52,6 +55,7 @@ export default async (req) => {
       }
 
       if (url.searchParams.get("admin") === "1") {
+        if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         return response({ cases: await listCases() });
       }
@@ -65,6 +69,7 @@ export default async (req) => {
       if (clean(body["bot-field"], 100)) return response({ error: "Requête refusée." }, 400);
 
       if (body.action === "prepare_claim") {
+        if (!(await allowAdminRequest(ipFor(req)))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const item = await getCase(clean(body.accessToken, 100));
         if (!item) return response({ error: "Dossier introuvable." }, 404);
@@ -89,6 +94,7 @@ export default async (req) => {
       }
 
       if (body.action === "status") {
+        if (!(await allowAdminRequest(ipFor(req)))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const item = await getCase(clean(body.accessToken, 100));
         if (!item) return response({ error: "Dossier introuvable." }, 404);
