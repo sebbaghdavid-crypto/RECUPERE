@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { allowCaseCreate, allowAdminRequest } from "./auth.mjs";
+import { allowCaseCreate, allowAdminRequest, getSession, createSession, sessionCookie } from "./auth.mjs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
@@ -48,8 +48,9 @@ export default async (req) => {
       const adminIp = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       const token = url.searchParams.get("token");
       if (token) {
+        const session = await getSession(req);
         const item = await getCase(token);
-        if (!item) return response({ error: "Dossier introuvable." }, 404);
+        if (!item || !session?.email || String(item.email).toLowerCase() !== String(session.email).toLowerCase()) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
         const { accessToken, ...safe } = item;
         return response(safe);
       }
@@ -162,13 +163,14 @@ export default async (req) => {
         ]
       };
       await store.setJSON(`case/${token}`, item);
+      const sessionToken = await createSession(item.email);
       await sendCustomerEmail({
         to: item.email, name: item.name, caseNumber: item.caseNumber,
         subject: `RÉCUPÈRE — votre dossier ${item.caseNumber} est reçu`,
         title: "Votre dossier est bien reçu",
         body: `Votre dossier a été enregistré et une première analyse a été effectuée.\n\nStatut : ${item.status}\n${item.analysisLabel || ""}`
       });
-      return response({ ok: true, caseNumber, accessToken: token, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel }, 201);
+      return new Response(JSON.stringify({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel }), { status: 201, headers: { ...jsonHeaders, "Set-Cookie": sessionCookie(sessionToken) } });
     }
 
     return response({ error: "Méthode non supportée." }, 405);
