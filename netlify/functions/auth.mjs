@@ -29,6 +29,11 @@ export async function allowCaseCreate(email,ip){
 export async function allowPaymentRequest(ip){return rateLimit("payment-ip",String(ip||"unknown"),10)}
 export async function allowAdminRequest(ip){return rateLimit("admin-ip",String(ip||"unknown"),20)}
 export async function allowCashbackWebhookRequest(ip){return rateLimit("cashback-webhook-ip",String(ip||"unknown"),30)}
+export async function createSession(email){
+ const rawSession=token(),s=await hash(rawSession);
+ await store.setJSON("session/"+s,{email:String(email||"").trim().toLowerCase(),createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+604800000).toISOString()});
+ return rawSession
+}
 export async function createMagic(email){
  const normalized=String(email||"").trim().toLowerCase(),raw=token(),h=await hash(raw);
  await store.setJSON("magic/"+h,{email:normalized,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+900000).toISOString(),used:false});
@@ -42,9 +47,7 @@ export async function consumeMagic(raw){
  const used={...m,used:true,usedAt:new Date().toISOString()};
  const claimed=await store.setJSON(key,used,{onlyIfMatch:current.etag});
  if(!claimed.modified)return null;
- const rawSession=token(),s=await hash(rawSession);
- await store.setJSON("session/"+s,{email:m.email,createdAt:new Date().toISOString(),expiresAt:new Date(Date.now()+604800000).toISOString()});
- return rawSession
+ return await createSession(m.email)
 }
 export async function getSession(req){
  const cookies=(req.headers.get("cookie")||"").split(";").map(x=>x.trim()),prefix="__Host-recuperesession=";
