@@ -68,7 +68,7 @@ export default async (req) => {
       },
       body: params
     });
-    const session = await stripeResponse.json();
+    const stripeSession = await stripeResponse.json();
     if (!stripeResponse.ok) {
       console.error("Stripe Checkout error", session);
       return response({ error: "Impossible de créer le paiement." }, 502);
@@ -78,8 +78,8 @@ export default async (req) => {
     item.status = "PAYMENT_REQUIRED";
     item.payment = {
       provider: "stripe",
-      checkoutSessionId: session.id,
-      checkoutUrl: session.url,
+      checkoutSessionId: stripeSession.id,
+      checkoutUrl: stripeSession.url,
       paymentStatus: "pending",
       status: "pending",
       amount: 990,
@@ -91,7 +91,7 @@ export default async (req) => {
     item.events.push({ at: now, type: "PAYMENT_CHECKOUT_CREATED", provider: "stripe", amount: 9.90 });
     await store.setJSON(`case/${item.accessToken}`, item);
 
-    return response({ ok: true, checkoutUrl: session.url, caseNumber: item.caseNumber });
+    return response({ ok: true, checkoutUrl: stripeSession.url, caseNumber: item.caseNumber });
   } catch (error) {
     console.error("RECUPERE payment error", error);
     return response({ error: "Erreur serveur pendant la préparation du paiement." }, 500);
