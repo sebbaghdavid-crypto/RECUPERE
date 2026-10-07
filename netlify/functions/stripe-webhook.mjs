@@ -1,6 +1,7 @@
 import { getStore } from "@netlify/blobs";
 import crypto from "node:crypto";
 import { sendCustomerEmail } from "./notifications.mjs";
+import { updateCase } from "./case-store.mjs";
 const store=getStore({name:"recupere-cases",region:"eu-central-1"});
 const WEBHOOK_SECRET=process.env.STRIPE_WEBHOOK_SECRET;
 function response(body,status=200){return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}})}
@@ -27,6 +28,7 @@ async function claimEvent(eventId){
  return r.modified;
 }
 async function finishEvent(eventId){if(eventId)await store.setJSON("stripe-event/"+eventId,{status:"done",completedAt:Date.now()})}
+async function releaseEvent(eventId){if(eventId)await store.delete("stripe-event/"+eventId)}
 async function saveCase(item,event){
  const now=new Date().toISOString();item.updatedAt=now;item.events=Array.isArray(item.events)?item.events:[];
  if(!item.events.some(e=>e.type===event.type&&e.checkoutSessionId===event.checkoutSessionId&&e.eventId===event.eventId))item.events.push({at:now,...event});
