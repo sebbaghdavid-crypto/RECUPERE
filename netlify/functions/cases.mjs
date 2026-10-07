@@ -156,13 +156,21 @@ export default async (req) => {
       await store.setJSON(`case/${token}`, item);
       await indexCase(item);
       const sessionToken = await createSession(item.email);
-      await sendCustomerEmail({
+      const emailResult = await sendCustomerEmail({
         to: item.email, name: item.name, caseNumber: item.caseNumber,
         subject: `RÉCUPÈRE — votre dossier ${item.caseNumber} est reçu`,
         title: "Votre dossier est bien reçu",
-        body: `Votre dossier a été enregistré et une première analyse a été effectuée.\n\nStatut : ${item.status}\n${item.analysisLabel || ""}`
+        body: `Votre dossier a été enregistré et une première analyse a été effectuée.\n\nStatut : ${item.status}\n${item.analysisLabel || ""}`,
+        idempotencyKey: `case-created|${item.caseNumber}`
       });
-      return new Response(JSON.stringify({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel }), { status: 201, headers: { ...jsonHeaders, "Set-Cookie": sessionCookie(sessionToken) } });
+      if (!emailResult.sent) {
+        await updateCase(item.accessToken, current => {
+          current.events = Array.isArray(current.events) ? current.events : [];
+          current.events.push({at:new Date().toISOString(),type:"CUSTOMER_EMAIL_FAILED",reason:emailResult.reason||"unknown"});
+          return current;
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel, emailSent: emailResult.sent }), { status: 201, headers: { ...jsonHeaders, "Set-Cookie": sessionCookie(sessionToken) } });
     }
 
     return response({ error: "Méthode non supportée." }, 405);
