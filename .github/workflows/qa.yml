@@ -25,3 +25,7 @@ jobs:
 
       - name: Run regression tests
         run: node --test qa/*.test.mjs
+
+concurrency:
+  group: recupere-qa-${{ github.ref }}
+  cancel-in-progress: true
