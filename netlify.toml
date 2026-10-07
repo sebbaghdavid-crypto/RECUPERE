@@ -30,6 +30,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/cashback-providers"
+  to = "/.netlify/functions/cashback-providers"
+  status = 200
+
+[[redirects]]
   from = "/api/cashback-ai"
   to = "/.netlify/functions/cashback-ai"
   status = 200
