@@ -3,6 +3,7 @@ import { allowCaseCreate, allowAdminRequest, getSession, createSession, sessionC
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
+import { indexCase, transitionCase, updateCase } from "./case-store.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -99,20 +100,10 @@ export default async (req) => {
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const item = await getCase(clean(body.accessToken, 100));
         if (!item) return response({ error: "Dossier introuvable." }, 404);
-        const allowed = ["NEW","ANALYSIS","OPPORTUNITY","PAYMENT_REQUIRED","PAID","CLAIM_PREPARED","SENT","FOLLOW_UP","RECOVERED","CLOSED","NO_OPPORTUNITY","INCOMPLETE","REFUNDED","CANCELLED"];
         const status = clean(body.status, 40);
-        if (!allowed.includes(status)) return response({ error: "Statut invalide." }, 400);
-        item.status = status;
-        item.updatedAt = new Date().toISOString();
-        item.events = Array.isArray(item.events) ? item.events : [];
-        item.events.push({
-          at: item.updatedAt,
-          type: "STATUS_CHANGED",
-          status,
-          note: clean(body.note, 2000)
-        });
-        await store.setJSON(`case/${item.accessToken}`, item);
-        const { accessToken, ...safe } = item;
+        const result = await transitionCase(item.accessToken,status,{type:"STATUS_CHANGED",note:clean(body.note,2000)});
+        if(!result.ok)return response({error:result.reason==="rejected"?"Transition de statut interdite.":"Conflit de mise à jour. Réessayez."},409);
+        const { accessToken, ...safe } = result.item;
         return response(safe);
       }
 
@@ -163,6 +154,7 @@ export default async (req) => {
         ]
       };
       await store.setJSON(`case/${token}`, item);
+      await indexCase(item);
       const sessionToken = await createSession(item.email);
       await sendCustomerEmail({
         to: item.email, name: item.name, caseNumber: item.caseNumber,
