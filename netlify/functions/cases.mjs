@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { analyzeCase } from "./analysis.mjs";
+import { buildClaim } from "./claim.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -60,6 +61,24 @@ export default async (req) => {
       const body = await req.json().catch(() => null);
       if (!body) return response({ error: "Requête invalide." }, 400);
       if (clean(body["bot-field"], 100)) return response({ error: "Requête refusée." }, 400);
+
+      if (body.action === "prepare_claim") {
+        if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
+        const item = await getCase(clean(body.accessToken, 100));
+        if (!item) return response({ error: "Dossier introuvable." }, 404);
+        if (!["PAID","CLAIM_PREPARED","SENT","FOLLOW_UP","RECOVERED","CLOSED"].includes(item.status)) {
+          return response({ error: "Le dossier doit être payé avant de préparer la réclamation." }, 409);
+        }
+        const claim = buildClaim(item);
+        item.claim = claim;
+        item.status = "CLAIM_PREPARED";
+        item.updatedAt = new Date().toISOString();
+        item.events = Array.isArray(item.events) ? item.events : [];
+        item.events.push({ at: item.updatedAt, type: "CLAIM_PREPARED" });
+        await store.setJSON(`case/${item.accessToken}`, item);
+        const { accessToken, ...safe } = item;
+        return response(safe);
+      }
 
       if (body.action === "status") {
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
