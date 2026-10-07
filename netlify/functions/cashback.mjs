@@ -44,7 +44,7 @@ async function capitisUser(email){
 
 async function capitisLink(offer,email){
  if(!offer.merchantId) throw Error("CAPITIS_MERCHANT_ID_MISSING");
- const user=await capitisUser(email||"anonymous@recupere.local");
+ const user=await capitisUser(email);
  const d=await capitisRequest("/links",{method:"POST",body:JSON.stringify({
    end_user_external_id:user.externalId,
    merchant_id:String(offer.merchantId),
@@ -64,7 +64,7 @@ export default async req=>{try{
    if(!b||b.action!=="click")return out({error:"Action invalide."},400);
    const o=(await offers()).find(x=>String(x.id)===clean(b.offerId,100));
    if(!o)return out({error:"Offre introuvable."},404);
-   const email=clean(b.email,254).toLowerCase();
+   const email=clean(b.email,254).toLowerCase();\n   if(o.provider==="capitis" && (!email || !email.includes("@"))) return out({error:"Email requis pour activer le cashback."},400);
    const clickref="rcp_"+crypto.randomUUID().replaceAll("-","").slice(0,24);
    let trackingUrl=null,clickToken=null;
    if(o.provider==="capitis"){
