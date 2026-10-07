@@ -49,8 +49,6 @@
   to = "/.netlify/functions/cashback-wallet"
   status = 200
 
-[functions."cashback-follow-ups"]
-  schedule = "45 7 * * *"
 
 [functions."cashback-sync"]
   schedule = "15 8 * * *"
