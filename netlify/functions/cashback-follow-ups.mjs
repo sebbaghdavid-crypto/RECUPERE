@@ -1,0 +1,4 @@
+import { getStore } from "@netlify/blobs";
+const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
+export default async()=>{let processed=0;for await(const page of store.list({prefix:"click/",paginate:true})){for(const blob of page.blobs){const x=await store.get(blob.key,{type:"json",consistency:"strong"});if(!x||x.status!=="CLICKED")continue;if(Date.now()-new Date(x.createdAt).getTime()<7*86400000)continue;x.status="PENDING_CONFIRMATION";x.updatedAt=new Date().toISOString();await store.setJSON(blob.key,x);processed++}}console.log("cashback follow-up",processed)};
+export const config={schedule:"45 7 * * *"};
