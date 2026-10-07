@@ -36,7 +36,7 @@ async function capitisUser(email){
  if(cached?.id)return cached;
  const d=await capitisRequest("/end-users",{method:"POST",body:JSON.stringify({external_id:externalId})});
  const user={id:d.id||d.end_user_id||d.external_id||externalId,externalId};
- const identifierHash=await digest(email);\n const identifier=await capitisRequest("/end-users/"+encodeURIComponent(user.id)+"/identifiers",{method:"POST",body:JSON.stringify({type:"email",value:identifierHash})}).catch(e=>null);
+ const identifier=await capitisRequest("/end-users/"+encodeURIComponent(user.id)+"/identifiers",{method:"POST",body:JSON.stringify({email})}).catch(e=>null);
  if(identifier===null) throw Error("CAPITIS_IDENTIFIER_ERROR");
  await store.setJSON(key,user);
  return user;
