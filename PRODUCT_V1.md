@@ -1,13 +1,44 @@
 # RÉCUPÈRE — V1
 
-## Objective
-Transform the current repository into the foundation of a real service:
-client intake, dossier tracking, administration, payment, invoicing, notifications, and auditable status history.
+## État réel au 7 octobre 2026
 
-## Important
-The current repository contains only a minimal README. The production application currently deployed on Netlify is therefore not present in this GitHub repository.
+Le dépôt contient maintenant la landing pilot, un formulaire Netlify avec pièce jointe, une API serverless et un stockage persistant Netlify Blobs.
 
-## V1 domain model
+Le produit n'est **pas encore un SaaS complet** : authentification client, paiements, facturation et notifications transactionnelles sont les prochaines briques.
+
+## Fonctionnalités désormais codées
+
+### Intake
+- formulaire public RÉCUPÈRE
+- création d'un dossier persistant
+- numéro de dossier REC-AAAA-XXXXXX
+- code privé de suivi
+- catégories, entreprise, référence, montant, description
+- pièce jointe via Netlify Forms
+- transmission sans envoi automatique de réclamation
+
+### Suivi client
+- espace de suivi sur la page publique
+- recherche par code privé
+- affichage du statut
+- affichage de l'historique des événements
+- mémorisation locale du code de suivi sur le navigateur
+
+### Administration
+- /admin/
+- authentification par clé serveur
+- liste des dossiers
+- recherche
+- filtre par statut
+- compteurs
+- changement de statut
+- note interne
+- historique/audit des changements
+
+### Stockage
+Netlify Blobs est utilisé comme stockage persistant site-wide. Les dossiers sont enregistrés sous case/<accessToken>.
+
+## Modèle métier
 
 ### users
 - id
@@ -74,44 +105,34 @@ The current repository contains only a minimal README. The production applicatio
 - payload
 - created_at
 
-## Case lifecycle
+## Lifecycle
+
 NEW -> ANALYSIS -> OPPORTUNITY -> PAYMENT_REQUIRED -> PAID -> CLAIM_PREPARED -> SENT -> FOLLOW_UP -> RECOVERED -> CLOSED
 
-Alternative terminal states:
-NO_OPPORTUNITY, INCOMPLETE, REFUNDED, CANCELLED
+États alternatifs : NO_OPPORTUNITY, INCOMPLETE, REFUNDED, CANCELLED
 
-## Payments
-PayPal is the planned provider. The integration must use server-side secrets only. Subscription/payment state must be synchronized from verified PayPal webhooks, not from the browser alone.
+## Sécurité actuelle
 
-## Invoicing
-Invoice status must be synchronized with PayPal webhook events where PayPal invoicing is used.
+- la clé admin n'est jamais stockée dans le dépôt
+- la clé admin est lue côté fonction via variable d'environnement
+- le code privé de suivi n'est pas renvoyé par l'API publique après consultation
+- aucune donnée bancaire ou mot de passe n'est demandé
+- les justificatifs restent gérés par Netlify Forms
+- les données sensibles doivent être traitées avec une politique de conservation adaptée
 
-## Notifications
-- new case -> admin notification
-- case received -> customer confirmation
-- payment success -> customer + admin notification
-- status change -> customer notification
-- failed payment -> customer notification
-- recovered -> customer notification
+## Variable Netlify nécessaire
 
-## Admin requirements
-- dashboard counters
-- searchable/filterable cases
-- case detail
-- document access
-- status changes
-- payment state
-- invoice state
-- timeline/history
-- manual notes
-- export
+RECUPERE_ADMIN_KEY
 
-## Security
-- never expose PayPal client secret or access token in frontend
-- authenticated admin area
-- private document storage
-- minimal personal data
-- audit trail for important mutations
+Cette variable doit être définie côté Netlify avec une valeur secrète et disponible pour les Functions. Elle ne doit jamais être écrite dans GitHub.
 
-## Deployment
-The Netlify deployment should be connected to this repository only after the application source is actually committed here.
+## Prochaine étape produit
+
+1. notifications email client/admin
+2. authentification client
+3. paiement PayPal
+4. facturation
+5. analyse métier vérifiable par catégorie
+6. préparation des réclamations
+7. relances automatiques
+8. pilote de 10 utilisateurs réels
