@@ -8,7 +8,7 @@ const statusOf=x=>{
  const s=String(x?.status||x?.state||"pending").toUpperCase();
  if(["APPROVED","VALIDATED","CONFIRMED","PAYABLE"].includes(s))return "APPROVED";
  if(["PAID","SETTLED"].includes(s))return "PAID";
- if(["DECLINED","REJECTED","CANCELLED","DELETED"].includes(s))return "DECLINED";
+ if(["DECLINED","REJECTED","CANCELLED","DELETED","REVERSED"].includes(s))return "DECLINED";
  return "PENDING";
 };
 async function findClick(token){
