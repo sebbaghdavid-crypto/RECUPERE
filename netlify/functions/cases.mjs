@@ -19,8 +19,8 @@ function clean(value, max=4000) {
 function ipFor(req) { return req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"; }
 
 function adminOk(req) {
-  const expected = process.env.RECUPERE_ADMIN_KEY;
-  const provided = req.headers.get("x-admin-key");
+  const expected = String(process.env.RECUPERE_ADMIN_KEY || "").trim();
+  const provided = String(req.headers.get("x-admin-key") || "").trim();
   return Boolean(expected && provided && provided === expected);
 }
 
