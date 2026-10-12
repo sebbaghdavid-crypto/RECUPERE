@@ -25,17 +25,40 @@
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 const form=document.querySelector("form"),ok=document.getElementById("success"),err=document.getElementById("error");
 const caseNumberInput=document.createElement("input");caseNumberInput.type="hidden";caseNumberInput.name="case_number";form.appendChild(caseNumberInput);
-form.addEventListener("submit",async e=>{e.preventDefault();err.style.display="none";const fd=new FormData(form);const payload=Object.fromEntries(fd.entries());delete payload.document;delete payload.consent;
-try{
- const cr=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
- const cd=await cr.json();if(!cr.ok)throw Error(cd.error||"Création impossible");
- caseNumberInput.value=cd.caseNumber;
- const nr=await fetch("/",{method:"POST",body:fd});if(!nr.ok)throw Error("Transmission du justificatif impossible");
- form.style.display="none";
- ok.querySelector("p").innerHTML='Votre dossier <strong>'+cd.caseNumber+'</strong> est enregistré. Votre espace est sécurisé par votre session.';
- ok.innerHTML+='<p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>';
- ok.style.display="block";document.getElementById("trackToken").value=cd.caseNumber;ok.scrollIntoView({behavior:"smooth",block:"center"});
-}catch(x){err.textContent=x.message||"La transmission a échoué. Vérifiez votre connexion puis réessayez.";err.style.display="block";}};
+form.addEventListener("submit",async e=>{
+ e.preventDefault();err.style.display="none";
+ const submitButton=form.querySelector('button[type="submit"]');
+ const originalLabel=submitButton.textContent;
+ submitButton.disabled=true;submitButton.textContent="Envoi en cours…";
+ const fd=new FormData(form);
+ const payload=Object.fromEntries(fd.entries());
+ delete payload.document;delete payload.consent;
+ try{
+  const cr=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+  const cd=await cr.json().catch(()=>({}));
+  if(!cr.ok)throw Error(cd.error||"Le dossier n'a pas pu être enregistré (HTTP "+cr.status+").");
+  // L'API est la source de vérité. Un échec du formulaire secondaire ne doit pas
+  // faire croire que le dossier n'existe pas après sa création.
+  caseNumberInput.value=cd.caseNumber;
+  fd.set("case_number",cd.caseNumber);
+  let formStored=true;
+  try{
+   const nr=await fetch("/",{method:"POST",body:fd});
+   formStored=nr.ok;
+  }catch(_){formStored=false;}
+  form.style.display="none";
+  ok.innerHTML='<h3>Dossier enregistré ✓</h3><p>Votre dossier <strong>'+esc(cd.caseNumber)+'</strong> a bien été créé.</p><p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>'+
+   (formStored?'':'<p role="status">Attention : le dossier est enregistré, mais la transmission complémentaire du formulaire ou du justificatif n’a pas été confirmée. Ne renvoyez pas une nouvelle demande. Conservez votre numéro de dossier et contactez-nous pour transmettre le justificatif séparément.</p>');
+  ok.style.display="block";
+  document.getElementById("trackToken").value=cd.caseNumber;
+  ok.scrollIntoView({behavior:"smooth",block:"center"});
+ }catch(x){
+  err.textContent=x.message||"Le dossier n'a pas pu être enregistré. Vérifiez votre connexion puis réessayez.";
+  err.style.display="block";
+ }finally{
+  submitButton.disabled=false;submitButton.textContent=originalLabel;
+ }
+});
 const trackBtn=document.getElementById("trackBtn"),trackToken=document.getElementById("trackToken"),trackResult=document.getElementById("trackResult");
 function renderTrack(c){
 let pay='';
