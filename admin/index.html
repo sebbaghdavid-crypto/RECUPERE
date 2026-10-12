@@ -19,48 +19,8 @@ function bindCase(c){
 const prepare=document.querySelector('.prepare[data-token="'+c.accessToken+'"]');
 if(prepare)prepare.onclick=async()=>{const r=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json","x-admin-key":key},body:JSON.stringify({action:"prepare_claim",accessToken:c.accessToken})});const d=await r.json();if(!r.ok){alert(d.error||"Impossible de préparer la réclamation.");return}alert((d.claim?.subject||"Réclamation préparée")+"\n\n"+(d.claim?.body||""));await load();};
 document.querySelector('.save[data-token="'+c.accessToken+'"]').onclick=async()=>{const status=$("#st-"+c.accessToken).value,note=$("#nt-"+c.accessToken).value;const r=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json","x-admin-key":key},body:JSON.stringify({action:"status",accessToken:c.accessToken,status,note})});if(!r.ok){alert("Impossible d'enregistrer.");return}await load();}}
-$("#loginBtn").onclick=async()=>{key=$("#key").value.trim();$("#loginError").textContent="Connexion en cours…";try{await load();sessionStorage.setItem("recupere_admin_key",key);$("#login").hidden=true;$("#app").hidden=false}catch(e){$("#loginError").textContent=e.message||"Connexion impossible.";key="";}};
+$("#loginBtn").onclick=async()=>{const button=$("#loginBtn");key=$("#key").value.trim();$("#loginError").textContent="Connexion à Netlify en cours…";if(!key){$("#loginError").textContent="Saisissez la clé administrateur.";return;}button.disabled=true;button.textContent="Vérification en cours…";try{await load();sessionStorage.setItem("recupere_admin_key",key);$("#login").hidden=true;$("#app").hidden=false;$("#loginError").textContent="";}catch(e){sessionStorage.removeItem("recupere_admin_key");$("#loginError").textContent=e.message||"Connexion impossible.";key="";}finally{button.disabled=false;button.textContent="Accéder aux dossiers";}};
 $("#refresh").onclick=load;$("#search").oninput=render;$("#statusFilter").onchange=render;$("#logout").onclick=()=>{sessionStorage.removeItem("recupere_admin_key");location.reload()};
 if(key)load().then(()=>{$("#login").hidden=true;$("#app").hidden=false}).catch(e=>{$("#loginError").textContent=e.message||"Connexion impossible.";key="";sessionStorage.removeItem("recupere_admin_key")});
 </script>
-<script>
-/* Independent login diagnostic: still runs if the main admin script has a JavaScript error. */
-document.addEventListener("click", async function(event) {
-  const button = event.target && event.target.closest ? event.target.closest("#loginBtn") : null;
-  if (!button) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  const input = document.getElementById("key");
-  const error = document.getElementById("loginError");
-  const key = (input && input.value || "").trim();
-  if (!key) { error.textContent = "Saisissez la clé administrateur."; return; }
-  button.disabled = true;
-  button.textContent = "Vérification en cours…";
-  error.textContent = "Connexion à Netlify en cours…";
-  try {
-    const response = await fetch("/api/cases?admin=1", {
-      method: "GET",
-      headers: { "x-admin-key": key, "accept": "application/json" },
-      cache: "no-store"
-    });
-    const raw = await response.text();
-    let data;
-    try { data = JSON.parse(raw); } catch (_) {
-      throw new Error("Réponse non JSON (HTTP " + response.status + "). Vérifiez le déploiement Netlify.");
-    }
-    if (!response.ok) {
-      if (response.status === 401) throw new Error("Clé refusée par le serveur. Vérifiez la valeur Production de RECUPERE_ADMIN_KEY dans Netlify.");
-      if (response.status === 429) throw new Error("Trop de tentatives. Attendez quelques minutes avant de réessayer.");
-      throw new Error((data.error || "Erreur serveur") + " (HTTP " + response.status + ").");
-    }
-    if (!Array.isArray(data.cases)) throw new Error("L’API répond, mais ne renvoie pas la liste des dossiers. Le déploiement doit être vérifié.");
-    sessionStorage.setItem("recupere_admin_key", key);
-    error.textContent = "Clé acceptée. Ouverture de l’administration…";
-    location.reload();
-  } catch (err) {
-    error.textContent = err && err.message ? err.message : "Connexion impossible. Vérifiez votre connexion puis réessayez.";
-    button.disabled = false;
-    button.textContent = "Accéder aux dossiers";
-  }
-}, true);
-</script></body></html>
+</body></html>
