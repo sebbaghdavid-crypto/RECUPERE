@@ -1,67 +1,6 @@
+
 [build]
   publish = "."
 
 [build.processing]
   skip_processing = false
-
-[[redirects]]
-  from = "/api/cases"
-  to = "/.netlify/functions/cases"
-  status = 200
-
-[[redirects]]
-  from = "/api/payment"
-  to = "/.netlify/functions/payment"
-  status = 200
-
-[[redirects]]
-  from = "/api/stripe-webhook"
-  to = "/.netlify/functions/stripe-webhook"
-  status = 200
-
-[[redirects]]
-  from = "/api/portal"
-  to = "/.netlify/functions/portal"
-  status = 200
-
-[[redirects]]
-  from = "/api/cashback"
-  to = "/.netlify/functions/cashback"
-  status = 200
-
-[[redirects]]
-  from = "/api/cashback-providers"
-  to = "/.netlify/functions/cashback-providers"
-  status = 200
-
-[[redirects]]
-  from = "/api/cashback-ai"
-  to = "/.netlify/functions/cashback-ai"
-  status = 200
-
-[[redirects]]
-  from = "/api/cashback-webhook"
-  to = "/.netlify/functions/cashback-webhook"
-  status = 200
-
-[[redirects]]
-  from = "/api/cashback-wallet"
-  to = "/.netlify/functions/cashback-wallet"
-  status = 200
-
-
-[functions."cashback-sync"]
-  schedule = "15 8 * * *"
-
-[functions."follow-ups"]
-  schedule = "15 7 * * *"
-
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
-    X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "DENY"
-    Referrer-Policy = "no-referrer"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
