@@ -70,6 +70,27 @@ export default async (req) => {
       if (!body) return response({ error: "Requête invalide." }, 400);
       if (clean(body["bot-field"], 100)) return response({ error: "Requête refusée." }, 400);
 
+      if (body.action === "create_test") {
+        const adminIp = ipFor(req);
+        if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
+        if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
+        const now = new Date().toISOString();
+        const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().slice(0, 8);
+        const caseNumber = `TEST-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+        const item = {
+          caseNumber, accessToken: token, name: "TEST RÉCUPÈRE", email: "test-interne@example.invalid",
+          category: "TEST TECHNIQUE", amount: "0", company: "Environnement de test",
+          reference: "TEST-SANS-EMAIL", description: "Dossier technique créé depuis l’administration. Aucune demande réelle, aucun e-mail envoyé, aucun paiement déclenché.",
+          status: "NEW", opportunityLevel: "PENDING", estimatedRecovery: null, confidence: null,
+          createdAt: now, updatedAt: now, isTest: true,
+          events: [{ at: now, type: "TEST_CASE_CREATED", note: "Créé par l’administrateur ; aucun e-mail envoyé." }]
+        };
+        await store.setJSON(`case/${token}`, item);
+        await indexCase(item);
+        const { accessToken, ...safe } = item;
+        return response({ ok: true, case: safe }, 201);
+      }
+
       if (body.action === "prepare_claim") {
         if (!(await allowAdminRequest(ipFor(req)))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
