@@ -36,7 +36,7 @@ Confirmer précisément :
 Compléter et valider avant publication :
 - Responsable du traitement : [IDENTITÉ EXACTE ET CONTACT]
 - Finalités : gestion du dossier, analyse, communication avec l'utilisateur, paiement et sécurité — à confirmer selon le traitement réel.
-- Données collectées : identité, adresse e-mail, description du dossier, organisme concerné, références, montants, pièces justificatives, journaux techniques et données de paiement limitées aux informations nécessaires.
+- Données collectées : identité, adresse e-mail, description du dossier, organisme concerné, références, montants et journaux techniques. Les justificatifs sont temporairement désactivés dans la branche de travail ; ne les réactiver qu’après mise en place et validation d’un stockage privé. Les données de paiement doivent rester limitées aux informations nécessaires.
 - Base(s) légale(s) pour chaque finalité : [À DÉTERMINER ET VALIDER]
 - Destinataires / sous-traitants et pays de traitement : [NETLIFY, STRIPE, RESEND ET AUTRES PRESTATAIRES RÉELLEMENT UTILISÉS, À CONFIRMER]
 - Durées de conservation par catégorie de données : [DURÉES JUSTIFIÉES]
