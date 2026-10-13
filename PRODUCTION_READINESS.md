@@ -27,7 +27,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Vérifier que l'API refuse la création d'un dossier si le consentement explicite n'est pas fourni.
 - [ ] Vérifier que tout nouveau dossier reste en analyse jusqu'à validation humaine et qu'aucune heuristique ne déclenche seule le paiement.
 - [ ] Créer un dossier sans justificatif : un seul dossier est créé et le numéro affiché correspond à celui de l'administration.
-- [ ] Créer un dossier avec PDF ou image : le fichier est réellement reçu, accessible uniquement aux personnes autorisées et rattaché au bon dossier.
+- [ ] Les justificatifs sont désactivés dans la branche de travail : avant de les réactiver, implémenter un stockage privé avec contrôle d’accès par dossier, puis tester PDF/image, association au bon dossier et absence d’accès public. Ne pas utiliser Netlify Forms pour des justificatifs personnels sans protection supplémentaire validée.
 - [ ] Vérifier la réception d'e-mail, les liens et le dossier dans le portail client.
 - [ ] Demander un lien de connexion : lien à usage unique, expiration respectée, cookie sécurisé et déconnexion fonctionnelle.
 - [ ] Vérifier qu'un client ne peut pas lire le dossier d'un autre client.
