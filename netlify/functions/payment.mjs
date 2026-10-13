@@ -36,6 +36,10 @@ export default async (req) => {
     if (item.payment?.status === "paid" || item.status === "PAID") {
       return response({ ok: true, alreadyPaid: true, caseNumber: item.caseNumber });
     }
+    // Only dossiers explicitly marked for payment by the analysis can open Checkout.
+    if (item.status !== "PAYMENT_REQUIRED") {
+      return response({ error: "Ce dossier ne nécessite pas de paiement à cette étape." }, 409);
+    }
     if (item.payment?.checkoutSessionId && item.payment?.status === "pending" && item.payment?.checkoutUrl) {
       return response({ ok: true, checkoutUrl: item.payment.checkoutUrl, caseNumber: item.caseNumber, reusedCheckout: true });
     }
@@ -71,6 +75,7 @@ export default async (req) => {
     const now = new Date().toISOString();
     const result = await updateCase(item.accessToken, current => {
       if (current.payment?.status === "paid" || current.status === "PAID") return null;
+      if (current.status !== "PAYMENT_REQUIRED") return null;
       if (current.payment?.checkoutSessionId && current.payment?.status === "pending" && current.payment?.checkoutUrl) return current;
       current.status = "PAYMENT_REQUIRED";
       current.payment = { provider:"stripe", checkoutSessionId:stripeSession.id, checkoutUrl:stripeSession.url, paymentStatus:"pending", status:"pending", amount:990, currency:"eur", createdAt:now };
