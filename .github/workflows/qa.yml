@@ -1,9 +1,9 @@
 name: RÉCUPÈRE QA
 on:
   push:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
   pull_request:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
 jobs:
   syntax:
     runs-on: ubuntu-latest
