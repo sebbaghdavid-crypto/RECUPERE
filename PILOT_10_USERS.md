@@ -8,6 +8,7 @@ Vérifier que des personnes comprennent la proposition de valeur, arrivent à tr
 ## Conditions avant invitation
 - [ ] L'exploitant a validé l'information de confidentialité et le traitement des dossiers pilotes.
 - [ ] Le parcours navigateur a été testé par l'équipe sur la prévisualisation.
+- [ ] Les justificatifs restent désactivés pour le pilote ; aucun fichier personnel ne doit être demandé tant que le stockage privé n'est pas validé.
 - [ ] Les variables Netlify et le domaine d'envoi ont été vérifiés sans partager de secrets.
 - [ ] Les participants sont informés qu'il s'agit d'un pilote, que l'analyse peut être erronée et qu'aucun remboursement n'est garanti.
 - [ ] Le parcours pilote ne collecte que les données nécessaires ; demander de masquer les informations non pertinentes sur les justificatifs.
@@ -29,7 +30,7 @@ Recruter 10 volontaires qui ont une situation de remboursement/réclamation simp
 1. Lire l'explication du service et les informations de confidentialité.
 2. Créer un dossier de test avec un exemple non sensible ou une situation réelle non urgente, avec consentement explicite.
 3. Vérifier que la page confirme le numéro du dossier.
-4. Si un justificatif est utilisé, vérifier son rattachement et l'accès limité.
+4. Ne pas joindre de justificatif : le formulaire n'accepte temporairement aucun fichier. Vérifier que le participant comprend cette limitation.
 5. Demander le lien de connexion et confirmer la réception de l'e-mail.
 6. Ouvrir l'espace client, consulter le dossier puis se déconnecter.
 7. Rapporter les difficultés, sans transmettre de secrets ou captures contenant des données privées.
