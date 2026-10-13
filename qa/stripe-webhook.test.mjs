@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {checkoutSessionDisposition} from "../netlify/functions/stripe-webhook.mjs";
+import {checkoutSessionDisposition} from "../netlify/functions/stripe-webhook-utils.mjs";
 
 test("Stripe webhook retries if checkout session has not been linked to the case yet",()=>{
  assert.equal(checkoutSessionDisposition(undefined,"cs_test_123"),"retry");

@@ -2,6 +2,7 @@ import { getStore } from "@netlify/blobs";
 import crypto from "node:crypto";
 import { sendCustomerEmail } from "./notifications.mjs";
 import { updateCase } from "./case-store.mjs";
+import {checkoutSessionDisposition} from "./stripe-webhook-utils.mjs";
 const store=getStore({name:"recupere-cases",region:"eu-central-1"});
 const WEBHOOK_SECRET=process.env.STRIPE_WEBHOOK_SECRET;
 function response(body,status=200){return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}})}
@@ -16,7 +17,6 @@ function verifySignature(rawBody,header){
  const expected=crypto.createHmac("sha256",WEBHOOK_SECRET).update(`${timestamp}.${rawBody}`).digest("hex");
  return signatures.some(signature=>safeEqual(expected,signature));
 }
-export function checkoutSessionDisposition(payment,sessionId){if(!payment?.checkoutSessionId)return "retry";return payment.checkoutSessionId===sessionId?"match":"stale"}
 async function getCase(token){if(!token||!/^[a-zA-Z0-9_-]{20,100}$/.test(token))return null;return store.get(`case/${token}`,{type:"json",consistency:"strong"})}
 async function claimEvent(eventId){
  if(!eventId||!/^evt_[a-zA-Z0-9_]+$/.test(eventId))return false;
