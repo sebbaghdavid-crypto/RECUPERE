@@ -29,16 +29,17 @@ export function summarizeWallet(records,minimumPayout=10){
   const legacyStatus=String(tx.status||"").toUpperCase();
   const providerExplicit=String(tx.providerStatus||"").trim()!=="";
   const ambiguousLegacyPaid=legacyStatus==="PAID"&&(!providerExplicit||!payoutStatus);
+  const ambiguousPayoutPaid=payoutStatus==="PAID"&&!providerExplicit;
   const unsupportedCurrency=currency!=="EUR";
-  if(knownSource&&!unsupportedCurrency&&!ambiguousLegacyPaid){
+  const needsReview=!knownSource||ambiguousLegacyPaid||ambiguousPayoutPaid||unsupportedCurrency;
+  if(knownSource&&!unsupportedCurrency&&!ambiguousLegacyPaid&&!ambiguousPayoutPaid){
    if(payoutStatus==="PAID"&&providerExplicit)paid=money(paid+amount);
    else if(providerStatus==="PENDING")pending=money(pending+amount);
    else if(providerStatus==="APPROVED"&&tx.payoutEligible===true&&payoutStatus!=="PAID")approved=money(approved+amount);
   }
-  const needsReview=!knownSource||ambiguousLegacyPaid||unsupportedCurrency;
   transactions.push({
    transactionId:tx.transactionId,status:needsReview?"REVIEW_REQUIRED":providerStatus,
-   payoutStatus:payoutStatus|| (needsReview?"REVIEW_REQUIRED":"NOT_PAID"),
+   payoutStatus:needsReview?"REVIEW_REQUIRED":(payoutStatus||"NOT_PAID"),
    cashbackAmount:tx.cashbackAmount,currency:tx.currency,merchant:tx.merchant,
    updatedAt:tx.updatedAt||tx.createdAt
   });
