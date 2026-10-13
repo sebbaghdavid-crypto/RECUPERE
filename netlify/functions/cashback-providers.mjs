@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { cashbackPublicEnabled } from "./cashback-feature-guard.mjs";
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
 const out=(b,s=200)=>new Response(JSON.stringify(b),{status:s,headers});
@@ -74,6 +75,7 @@ async function feedico(q) {
 
 export default async req=>{
  try{
+  if(!cashbackPublicEnabled())return out({ok:false,error:"Le cashback est en préparation et n’est pas encore ouvert."},503);
   const u=new URL(req.url);
   const q=(u.searchParams.get("q")||"").trim().slice(0,120);
   if(req.method==="GET"&&u.pathname.endsWith("/status")) return out({ok:true,providers:providerStatus()});
