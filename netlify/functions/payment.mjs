@@ -62,7 +62,7 @@ export default async (req) => {
       headers: {
         "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `recupere-checkout-${item.accessToken}`
+        "Idempotency-Key": `recupere-checkout-${item.accessToken}-${1 + (Array.isArray(item.events) ? item.events.filter(event => event.type === "PAYMENT_FAILED" || event.type === "PAYMENT_EXPIRED").length : 0)}`
       },
       body: params
     });
