@@ -1,9 +1,9 @@
 name: RÉCUPÈRE QA
 on:
   push:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity, chore/reproducible-install-lockfile]
   pull_request:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -20,9 +20,16 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
-      - name: Install test dependencies
-        run: npm install --no-audit --no-fund
-
+      - name: Generate complete npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Upload generated lockfile for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: recupere-generated-lockfile
+          path: package-lock.json
+          if-no-files-found: error
+      - name: Verify clean dependency installation
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run regression tests
         run: node --test qa/*.test.mjs
 
