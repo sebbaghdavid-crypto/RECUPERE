@@ -51,15 +51,29 @@ export default async req=>{
    if(!item.payment?.checkoutSessionId||item.payment.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
    const paidAmount=Number(session.amount_total),paidCurrency=String(session.currency||"").toLowerCase();
    if(paidAmount!==990||paidCurrency!=="eur"){await releaseEvent(eventId);return response({error:"Paiement invalide."},400)}
-   item.status="PAID";item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
-   await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90,eventId});
-   if(event.type==="checkout.session.completed"||event.type==="checkout.session.async_payment_succeeded"){const emailResult=await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation.",idempotencyKey:`payment-confirmed|${eventId}`});if(!emailResult?.sent){await releaseEvent(eventId);return response({error:"Paiement enregistré ; notification à réessayer."},500)}}
+   const paidAt=new Date().toISOString();
+   const result=await updateCase(token,current=>{
+    if(current.payment?.checkoutSessionId!==session.id)return null;
+    if(current.status==="PAID"&&current.payment?.status==="paid")return current;
+    current.status="PAID";
+    current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt,customerId:session.customer||null,invoiceId:session.invoice||null};
+    current.events=Array.isArray(current.events)?current.events:[];
+    if(!current.events.some(e=>e.type==="PAYMENT_CONFIRMED"&&e.checkoutSessionId===session.id))current.events.push({at:paidAt,type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90,eventId});
+    return current;
+   });
+   if(!result.ok){
+    const latest=await getCase(token);
+    if(!latest||latest.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
+    await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500);
+   }
+   const emailResult=await sendCustomerEmail({to:result.item.email,name:result.item.name,caseNumber:result.item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${result.item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation.",idempotencyKey:`payment-confirmed|${session.id}`});
+   if(!emailResult?.sent){await releaseEvent(eventId);return response({error:"Paiement enregistré ; notification à réessayer."},500)}
   }else if(event.type==="checkout.session.async_payment_failed"){
    if(item.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
-   item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"failed",status:"failed"};await saveCase(item,{type:"PAYMENT_FAILED",provider:"stripe",checkoutSessionId:session.id,eventId});
+   const result=await updateCase(token,current=>{if(current.payment?.checkoutSessionId!==session.id)return null;current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"failed",status:"failed"};current.events=Array.isArray(current.events)?current.events:[];if(!current.events.some(e=>e.type==="PAYMENT_FAILED"&&e.checkoutSessionId===session.id))current.events.push({at:new Date().toISOString(),type:"PAYMENT_FAILED",provider:"stripe",checkoutSessionId:session.id,eventId});return current});if(!result.ok){await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500)}
   }else if(event.type==="checkout.session.expired"){
    if(item.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
-   item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"expired",status:"expired"};await saveCase(item,{type:"PAYMENT_EXPIRED",provider:"stripe",checkoutSessionId:session.id,eventId});
+   const result=await updateCase(token,current=>{if(current.payment?.checkoutSessionId!==session.id)return null;current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"expired",status:"expired"};current.events=Array.isArray(current.events)?current.events:[];if(!current.events.some(e=>e.type==="PAYMENT_EXPIRED"&&e.checkoutSessionId===session.id))current.events.push({at:new Date().toISOString(),type:"PAYMENT_EXPIRED",provider:"stripe",checkoutSessionId:session.id,eventId});return current});if(!result.ok){await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500)}
   }
   await finishEvent(eventId);return response({received:true});
  }catch(error){console.error("RECUPERE stripe webhook error",error);return response({error:"Webhook invalide."},400)}
