@@ -16,6 +16,7 @@ Le produit n'est **pas encore un SaaS complet** : authentification client, email
 - catégories, entreprise, référence, montant, description
 - pièce jointe via Netlify Forms
 - transmission sans envoi automatique de réclamation
+- aucun paiement proposé sur la seule base de l’analyse automatisée : validation humaine nécessaire
 
 ### Suivi client
 - espace de suivi sur la page publique
@@ -135,7 +136,7 @@ Cette variable doit être définie côté Netlify avec une valeur secrète et di
 - Checkout hébergé Stripe
 - métadonnées liées au numéro/code du dossier
 - confirmation uniquement via webhook serveur
-- passage automatique à `PAID` après confirmation Stripe
+- passage à `PAID` après confirmation Stripe, uniquement après validation préalable du dossier et création de Checkout
 - événements d'échec/expiration enregistrés
 - création de facture activée dans Checkout
 

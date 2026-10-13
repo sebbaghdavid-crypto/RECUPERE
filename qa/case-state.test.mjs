@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import {canTransition} from "../netlify/functions/case-state.mjs";
+import {canTransition,initialCaseStatus} from "../netlify/functions/case-state.mjs";
+assert.equal(initialCaseStatus(),"ANALYSIS");
 assert.equal(canTransition("PAYMENT_REQUIRED","PAID"),true);
 assert.equal(canTransition("PAID","CLAIM_PREPARED"),true);
 assert.equal(canTransition("CLAIM_PREPARED","SENT"),true);

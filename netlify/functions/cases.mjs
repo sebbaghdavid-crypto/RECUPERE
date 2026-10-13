@@ -163,7 +163,7 @@ export default async (req) => {
       const analysis = analyzeCase(base);
       const item = {
         ...base,
-        status: analysis.opportunityLevel === "STRONG" ? "PAYMENT_REQUIRED" : "ANALYSIS",
+        status: "ANALYSIS",
         opportunityLevel: analysis.opportunityLevel,
         estimatedRecovery: analysis.estimatedRecovery,
         confidence: analysis.confidence,
