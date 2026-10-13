@@ -33,15 +33,16 @@ La présence d'une fonctionnalité dans le code ne prouve pas qu'elle fonctionne
 ## Dépendances et contrôles encore nécessaires
 
 1. Le lockfile npm v3 complet est disponible dans la PR #3 ; `npm ci` et les tests ont réussi sur son commit contrôlé. Confirmer sa présence sur le commit candidat final après intégration explicite.
-2. Contrôler les variables de production et le contexte d'exécution dans Netlify, sans exposer leurs valeurs.
-3. Tester le parcours complet en mode test Stripe : activation contrôlée de `RECUPERE_PAYMENTS_ENABLED`, création du Checkout, succès, échec, expiration, webhook et idempotence.
-4. Confirmer dans Stripe le montant, la devise, le mode test/live, les taxes/factures et le secret webhook configuré.
-5. Vérifier la configuration Resend, le domaine d'envoi et la réception réelle des emails.
-6. Vérifier le contrat/API Capitis avec un environnement autorisé; garder AWIN désactivé tant que l'authentification et le format ne sont pas validés.
-7. Compléter et faire vérifier les mentions légales, la politique de confidentialité, les conditions applicables, l'identité de l'exploitant et les coordonnées réelles.
-8. Tester le site déployé sur ordinateur et mobile, y compris les erreurs réseau, l'accès aux dossiers et les contrôles d'accès.
-9. Réaliser un pilote limité avec des utilisateurs volontaires, mesurer les résultats réels et confirmer la viabilité avant toute dépense.
-10. Faire une revue finale de sécurité, de conformité et de sauvegarde/restauration avant le lancement.
+2. Contrôler les variables de production et le contexte d’exécution dans Netlify, sans exposer leurs valeurs.
+3. Implémenter un stockage privé des justificatifs avec autorisation par dossier avant de réactiver les uploads ; Netlify recommande une protection supplémentaire pour les fichiers contenant des données personnelles.
+4. Tester le parcours complet en mode test Stripe : activation contrôlée de `RECUPERE_PAYMENTS_ENABLED`, création du Checkout, succès, échec, expiration, webhook et idempotence.
+5. Confirmer dans Stripe le montant, la devise, le mode test/live, les taxes/factures et le secret webhook configuré.
+6. Vérifier la configuration Resend, le domaine d’envoi et la réception réelle des emails.
+7. Vérifier le contrat/API Capitis avec un environnement autorisé ; garder AWIN désactivé tant que l’authentification et le format ne sont pas validés.
+8. Compléter et faire vérifier les mentions légales, la politique de confidentialité, les conditions applicables, l’identité de l’exploitant et les coordonnées réelles.
+9. Tester le site déployé sur ordinateur et mobile, y compris les erreurs réseau, l’accès aux dossiers et les contrôles d’accès.
+10. Réaliser un pilote limité avec des utilisateurs volontaires, mesurer les résultats réels et confirmer la viabilité avant toute dépense.
+11. Faire une revue finale de sécurité, de conformité et de sauvegarde/restauration avant le lancement.
 
 ## Conditions minimales avant de parler de lancement
 
