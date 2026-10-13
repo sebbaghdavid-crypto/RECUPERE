@@ -1,151 +1,56 @@
-# RÉCUPÈRE — V1
+# RÉCUPÈRE — état produit V1
 
-## État réel au 7 octobre 2026
+## État vérifié au 13 octobre 2026
 
-Le dépôt contient maintenant la landing pilot, un formulaire Netlify avec pièce jointe, une API serverless et un stockage persistant Netlify Blobs.
+Ce document décrit l'état du dépôt, pas une certification de production. Les tests automatisés passent sur les branches de travail, mais l'intégration réelle avec les comptes Netlify, Stripe, Resend et Capitis n'a pas été validée de bout en bout.
 
-Le produit n'est **pas encore un SaaS complet** : authentification client, emails transactionnels et moteur d'analyse métier restent à finaliser. Le paiement Stripe Checkout est désormais branché côté produit, avec confirmation serveur par webhook.
+**Le lancement public n'est pas autorisé à ce stade.** Le cashback reste désactivé/non ouvert au public. Aucun paiement réel ni versement n'a été déclenché pendant les travaux.
 
-## Fonctionnalités désormais codées
+## Parcours de dossier présent dans le code
 
-### Intake
-- formulaire public RÉCUPÈRE
-- création d'un dossier persistant
-- numéro de dossier REC-AAAA-XXXXXX
-- code privé de suivi
-- catégories, entreprise, référence, montant, description
-- pièce jointe via Netlify Forms
-- transmission sans envoi automatique de réclamation
-- aucun paiement proposé sur la seule base de l’analyse automatisée : validation humaine nécessaire
+- Formulaire de création de dossier et stockage côté serveur.
+- Vérification du consentement côté serveur.
+- Identifiant de dossier et code d'accès privé.
+- Pièce jointe via le parcours configuré avec Netlify Forms.
+- Statut initial en analyse, sans déclencher automatiquement une demande de paiement sur la seule base d'une heuristique.
+- Interface d'administration privée, protégée par une clé d'environnement.
+- Journalisation des changements de dossier.
+- Page publique indiquant que le cashback n'est pas encore ouvert.
+- Checkout Stripe et traitement webhook présents dans le code, mais leur configuration réelle, le prix, le mode test/live et les événements en production restent à vérifier dans le compte Stripe.
 
-### Suivi client
-- espace de suivi sur la page publique
-- recherche par code privé
-- affichage du statut
-- affichage de l'historique des événements
-- mémorisation locale du code de suivi sur le navigateur
+La présence d'une fonctionnalité dans le code ne prouve pas qu'elle fonctionne en production : les comptes tiers, variables d'environnement, domaines, permissions, emails et webhooks doivent être vérifiés séparément.
 
-### Administration
-- /admin/
-- authentification par clé serveur
-- liste des dossiers
-- recherche
-- filtre par statut
-- compteurs
-- changement de statut
-- note interne
-- historique/audit des changements
+## Règles de sécurité et de gestion
 
-### Stockage
-Netlify Blobs est utilisé comme stockage persistant site-wide. Les dossiers sont enregistrés sous case/<accessToken>.
+- Ne jamais ajouter de secrets, clés API ou secrets webhook au dépôt Git.
+- Ne jamais demander à l'utilisateur de transmettre ses secrets dans la conversation.
+- Ne jamais rendre un montant payable uniquement parce qu'une conversion ou un achat a été détecté.
+- Ne pas autoriser un changement manuel d'administration qui contourne la confirmation serveur d'un paiement.
+- Les dossiers ambigus, les transactions sans devise explicite et les historiques de paiement incertains doivent rester en revue et exclus des sommes payables.
+- Les tests et données fictives ne constituent pas une preuve de récupération d'argent réelle.
+- Ne pas activer de cashback, de paiement ou de versement avant les vérifications de bout en bout et les contrôles de conformité.
 
-## Modèle métier
+## Dépendances et contrôles encore nécessaires
 
-### users
-- id
-- email
-- name
-- role: customer | admin
-- created_at
-- updated_at
+1. Générer et valider un package-lock.json reproductible puis faire réussir npm ci.
+2. Contrôler les variables de production et le contexte d'exécution dans Netlify, sans exposer leurs valeurs.
+3. Tester le parcours complet en mode test Stripe : création du Checkout, succès, échec, expiration, webhook et idempotence.
+4. Confirmer dans Stripe le montant, la devise, le mode test/live, les taxes/factures et le secret webhook configuré.
+5. Vérifier la configuration Resend, le domaine d'envoi et la réception réelle des emails.
+6. Vérifier le contrat/API Capitis avec un environnement autorisé; garder AWIN désactivé tant que l'authentification et le format ne sont pas validés.
+7. Compléter et faire vérifier les mentions légales, la politique de confidentialité, les conditions applicables, l'identité de l'exploitant et les coordonnées réelles.
+8. Tester le site déployé sur ordinateur et mobile, y compris les erreurs réseau, l'accès aux dossiers et les contrôles d'accès.
+9. Réaliser un pilote limité avec des utilisateurs volontaires, mesurer les résultats réels et confirmer la viabilité avant toute dépense.
+10. Faire une revue finale de sécurité, de conformité et de sauvegarde/restauration avant le lancement.
 
-### cases
-- id
-- case_number
-- user_id
-- category
-- company
-- reference
-- amount
-- description
-- status
-- opportunity_level
-- estimated_recovery
-- confidence
-- created_at
-- updated_at
+## Conditions minimales avant de parler de lancement
 
-### documents
-- id
-- case_id
-- file_name
-- file_url
-- mime_type
-- created_at
+- Les tests automatisés sont verts sur le commit candidat.
+- Le build et l'installation sont reproductibles.
+- Les tests d'intégration tiers sont passés dans des environnements de test.
+- Les tests manuels sur le déploiement réel sont documentés.
+- Les contrôles légaux et de confidentialité sont terminés.
+- Aucun secret ni donnée de test ne fuit dans le parcours public.
+- Le cashback et les paiements ne sont activés qu'après une décision explicite et la validation de toutes les étapes ci-dessus.
 
-### payments
-- id
-- case_id
-- user_id
-- provider
-- provider_payment_id
-- amount
-- currency
-- status
-- created_at
-
-### invoices
-- id
-- case_id
-- user_id
-- provider
-- provider_invoice_id
-- invoice_number
-- amount
-- tax_amount
-- status
-- invoice_url
-- issued_at
-
-### case_events
-- id
-- case_id
-- actor_type
-- actor_id
-- event_type
-- payload
-- created_at
-
-## Lifecycle
-
-NEW -> ANALYSIS -> OPPORTUNITY -> PAYMENT_REQUIRED -> PAID -> CLAIM_PREPARED -> SENT -> FOLLOW_UP -> RECOVERED -> CLOSED
-
-États alternatifs : NO_OPPORTUNITY, INCOMPLETE, REFUNDED, CANCELLED
-
-## Sécurité actuelle
-
-- la clé admin n'est jamais stockée dans le dépôt
-- les clés Stripe et le secret de webhook ne sont jamais stockés dans le dépôt
-- la clé admin est lue côté fonction via variable d'environnement
-- le code privé de suivi n'est pas renvoyé par l'API publique après consultation
-- aucune donnée bancaire ou mot de passe n'est demandé
-- les justificatifs restent gérés par Netlify Forms
-- les données sensibles doivent être traitées avec une politique de conservation adaptée
-
-## Variable Netlify nécessaire
-
-RECUPERE_ADMIN_KEY
-
-Cette variable doit être définie côté Netlify avec une valeur secrète et disponible pour les Functions. Elle ne doit jamais être écrite dans GitHub.
-
-## Paiement Stripe désormais codé
-
-- produit Stripe réel : `prod_VOfS3m2r3SXNyr`
-- prix réel : `price_1UNs7PRS9BxXjI4TydRc7JIX`
-- montant : 9,90 € TTC
-- Checkout hébergé Stripe
-- métadonnées liées au numéro/code du dossier
-- confirmation uniquement via webhook serveur
-- passage à `PAID` après confirmation Stripe, uniquement après validation préalable du dossier et création de Checkout
-- événements d'échec/expiration enregistrés
-- création de facture activée dans Checkout
-
-## Prochaine étape produit
-
-1. notifications email client/admin
-2. authentification client
-3. analyse métier vérifiable par catégorie
-4. préparation des réclamations
-5. relances automatiques
-6. portail client complet
-7. pilote de 10 utilisateurs réels
+**Statut actuel : en préparation, non validé pour la production.**
