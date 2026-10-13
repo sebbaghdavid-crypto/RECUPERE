@@ -18,7 +18,7 @@ test("keeps same transaction IDs from different affiliate sources separate",()=>
  assert.equal(rows.length,2);
 });
 
-test("provider paid status is not interpreted as customer payout",()=>{
+test("provider approved status is not interpreted as customer payout unless payout state is explicit",()=>{
  const summary=summarizeWallet([
   {key:"transaction/capitis/1",tx:{transactionId:"1",source:"CAPITIS",status:"APPROVED",providerStatus:"APPROVED",cashbackAmount:8,commission:10,currency:"EUR",payoutEligible:true}},
   {key:"transaction/capitis/2",tx:{transactionId:"2",source:"CAPITIS",status:"APPROVED",providerStatus:"APPROVED",payoutStatus:"PAID",cashbackAmount:5,currency:"EUR",payoutEligible:false}}
@@ -69,7 +69,6 @@ test("transactions with missing currency are excluded from EUR balances and flag
  assert.equal(summary.transactions[0].payoutStatus,"REVIEW_REQUIRED");
 });
 
-
 test("legacy PAID is flagged for review when payout status is present but provider status is missing",()=>{
  const summary=summarizeWallet([
   {key:"transaction/capitis/legacy-paid",tx:{transactionId:"legacy-paid",source:"CAPITIS",status:"PAID",payoutStatus:"NOT_PAID",cashbackAmount:40,currency:"EUR",payoutEligible:true}}
@@ -77,9 +76,8 @@ test("legacy PAID is flagged for review when payout status is present but provid
  assert.equal(summary.approved,0);
  assert.equal(summary.paid,0);
  assert.equal(summary.transactions[0].status,"REVIEW_REQUIRED");
- assert.equal(summary.transactions[0].payoutStatus,"NOT_PAID");
+ assert.equal(summary.transactions[0].payoutStatus,"REVIEW_REQUIRED");
 });
-
 
 test("payout status PAID without explicit provider status is flagged and not counted as paid",()=>{
  const summary=summarizeWallet([
@@ -87,6 +85,6 @@ test("payout status PAID without explicit provider status is flagged and not cou
  ],10);
  assert.equal(summary.approved,0);
  assert.equal(summary.paid,0);
- assert.equal(summary.transactions[0].status,"APPROVED");
- assert.equal(summary.transactions[0].payoutStatus,"PAID");
+ assert.equal(summary.transactions[0].status,"REVIEW_REQUIRED");
+ assert.equal(summary.transactions[0].payoutStatus,"REVIEW_REQUIRED");
 });
