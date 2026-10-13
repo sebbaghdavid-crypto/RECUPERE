@@ -13,7 +13,7 @@
 - Contact client : [ADRESSE E-MAIL DE CONTACT]
 - Contact relatif aux données personnelles : [CONTACT]
 - Numéro de TVA intracommunautaire, si applicable : [NUMÉRO OU MENTION VALIDÉE]
-- Hébergeur du site : [ENTITÉ JURIDIQUE ET COORDONNÉES DE L'HÉBERGEUR À CONFIRMER D'APRÈS LE CONTRAT ACTUEL]
+- Hébergeur technique identifié dans les conditions officielles Netlify : Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis. **À confirmer avec le contrat et le compte Netlify réellement utilisés avant publication.**
 
 Ne pas mettre le site en production commerciale avec des champs manquants ou des données supposées.
 
