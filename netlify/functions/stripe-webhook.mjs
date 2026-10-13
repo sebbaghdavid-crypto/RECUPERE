@@ -75,4 +75,4 @@ export default async req=>{
   await finishEvent(eventId);return response({received:true});
  }catch(error){console.error("RECUPERE stripe webhook error",error);if(claimedEventId){try{await releaseEvent(claimedEventId)}catch(releaseError){console.error("RECUPERE stripe webhook release error",releaseError)}}return response({error:"Erreur temporaire de traitement du webhook."},500)}
 };
-export const config={path:"/.netlify/functions/stripe-webhook"};
+export const config={path:"/api/stripe-webhook"};
