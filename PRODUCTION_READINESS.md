@@ -5,6 +5,7 @@
 ## 1. Code et déploiement
 - [ ] Les PR de fiabilisation du formulaire et du registre cashback ont été relues et fusionnées explicitement.
 - [ ] Les contrôles GitHub Actions sont verts sur les commits exacts destinés à la production.
+- [ ] Un `package-lock.json` est commité et l'installation reproductible avec `npm ci` est validée.
 - [ ] Le déploiement Netlify de production correspond au commit attendu.
 - [ ] Les pages publiques et les fonctions API sont accessibles en HTTPS.
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
@@ -22,6 +23,8 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Les variables de test ne sont pas mélangées avec celles de production.
 
 ## 3. Tests manuels obligatoires — sans paiement réel
+- [ ] Vérifier que l'API refuse la création d'un dossier si le consentement explicite n'est pas fourni.
+- [ ] Vérifier que tout nouveau dossier reste en analyse jusqu'à validation humaine et qu'aucune heuristique ne déclenche seule le paiement.
 - [ ] Créer un dossier sans justificatif : un seul dossier est créé et le numéro affiché correspond à celui de l'administration.
 - [ ] Créer un dossier avec PDF ou image : le fichier est réellement reçu, accessible uniquement aux personnes autorisées et rattaché au bon dossier.
 - [ ] Vérifier la réception d'e-mail, les liens et le dossier dans le portail client.
@@ -30,6 +33,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Vérifier l'administration avec clé valide et invalide, ainsi que les limites de tentatives.
 - [ ] Tester Stripe en mode test : création Checkout, annulation, succès et expiration.
 - [ ] Envoyer un événement Stripe test signé : statut mis à jour uniquement après vérification du webhook.
+- [ ] Simuler une confirmation Stripe arrivant avant l'enregistrement de la session Checkout : le webhook doit demander une nouvelle tentative, pas ignorer définitivement le paiement.
 - [ ] Rejouer le même événement Stripe : aucune double opération ni double notification.
 - [ ] Vérifier les erreurs d'e-mail et la reprise sans doublon.
 - [ ] Tester sur mobile et sur les navigateurs principaux.
