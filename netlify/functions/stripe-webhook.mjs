@@ -32,11 +32,6 @@ async function claimEvent(eventId){
 }
 async function finishEvent(eventId){if(eventId)await store.setJSON("stripe-event/"+eventId,{status:"done",completedAt:Date.now()})}
 async function releaseEvent(eventId){if(eventId)await store.delete("stripe-event/"+eventId)}
-async function saveCase(item,event){
- const now=new Date().toISOString();item.updatedAt=now;item.events=Array.isArray(item.events)?item.events:[];
- if(!item.events.some(e=>e.type===event.type&&e.checkoutSessionId===event.checkoutSessionId&&e.eventId===event.eventId))item.events.push({at:now,...event});
- await store.setJSON(`case/${item.accessToken}`,item);return true;
-}
 export default async req=>{
  try{
   if(req.method!=="POST")return response({error:"Méthode non supportée."},405);
@@ -76,6 +71,6 @@ export default async req=>{
    const result=await updateCase(token,current=>{if(current.payment?.checkoutSessionId!==session.id)return null;if(current.status==="PAID"||current.payment?.status==="paid")return current;current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"expired",status:"expired"};current.events=Array.isArray(current.events)?current.events:[];if(!current.events.some(e=>e.type==="PAYMENT_EXPIRED"&&e.checkoutSessionId===session.id))current.events.push({at:new Date().toISOString(),type:"PAYMENT_EXPIRED",provider:"stripe",checkoutSessionId:session.id,eventId});return current});if(!result.ok){await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500)}
   }
   await finishEvent(eventId);return response({received:true});
- }catch(error){console.error("RECUPERE stripe webhook error",error);return response({error:"Webhook invalide."},400)}
+ }catch(error){console.error("RECUPERE stripe webhook error",error);return response({error:"Erreur temporaire de traitement du webhook."},500)}
 };
 export const config={path:"/.netlify/functions/stripe-webhook"};
