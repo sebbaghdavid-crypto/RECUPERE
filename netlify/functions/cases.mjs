@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { allowCaseCreate, allowAdminRequest, getSession, createSession, sessionCookie } from "./auth.mjs";
+import { allowCaseCreate, allowAdminRequest, getSession } from "./auth.mjs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
@@ -180,7 +180,6 @@ export default async (req) => {
       };
       await store.setJSON(`case/${token}`, item);
       await indexCase(item);
-      const sessionToken = await createSession(item.email);
       const emailResult = await sendCustomerEmail({
         to: item.email, name: item.name, caseNumber: item.caseNumber,
         subject: `RÉCUPÈRE — votre dossier ${item.caseNumber} est reçu`,
@@ -195,7 +194,7 @@ export default async (req) => {
           return current;
         });
       }
-      return new Response(JSON.stringify({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel, emailSent: emailResult.sent }), { status: 201, headers: { ...jsonHeaders, "Set-Cookie": sessionCookie(sessionToken) } });
+      return response({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel, emailSent: emailResult.sent }, 201);
     }
 
     return response({ error: "Méthode non supportée." }, 405);
