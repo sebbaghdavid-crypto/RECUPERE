@@ -1,11 +1,13 @@
 import { getStore } from "@netlify/blobs";
 import { allowPaymentRequest, getSession } from "./auth.mjs";
 import { findOwnedCaseRaw, updateCase } from "./case-store.mjs";
+import { paymentConfiguration } from "./payment-guard.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
-const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID || "price_1UNs7PRS9BxXjI4TydRc7JIX";
+const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const BASE_URL = process.env.RECUPERE_BASE_URL || "https://jade-pegasus-f6e204.netlify.app";
+const PAYMENT_CONFIGURATION = paymentConfiguration({ enabled: process.env.RECUPERE_PAYMENTS_ENABLED, secretKey: STRIPE_SECRET_KEY, priceId: PRICE_ID });
 
 function response(body, status=200) {
   return new Response(JSON.stringify(body), {
@@ -22,6 +24,7 @@ async function getCase(token) {
 export default async (req) => {
   try {
     if (req.method !== "POST") return response({ error: "Méthode non supportée." }, 405);
+    if (!PAYMENT_CONFIGURATION.ok) return response({ error: "Le paiement est désactivé jusqu’à la validation du pilote." }, 503);
     const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (!(await allowPaymentRequest(ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);
     if (!STRIPE_SECRET_KEY) return response({ error: "Paiement momentanément indisponible." }, 503);
