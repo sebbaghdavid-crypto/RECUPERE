@@ -12,9 +12,9 @@ RÉCUPÈRE est un service français de détection, préparation et suivi de dém
 - code privé de suivi
 - suivi client
 - administration des dossiers
-- paiement Stripe Checkout à 9,90 € par dossier
-- confirmation de paiement par webhook Stripe côté serveur
-- facture Stripe créée lors du Checkout
+- intégration Stripe Checkout présente dans le code, mais désactivée par défaut
+- garde-fou de paiement : activation explicite, clé `sk_test_` obligatoire et Price ID explicitement configuré
+- confirmation de paiement par webhook Stripe côté serveur lorsque le parcours est configuré en sandbox
 - recherche et filtres
 - changement de statut
 - historique des événements
@@ -29,14 +29,15 @@ Le dépôt est connecté à Netlify : les pushes sur `main` déclenchent les dé
 Créer dans Netlify ces variables d'environnement, disponibles pour les Functions :
 
 - **RECUPERE_ADMIN_KEY** — clé secrète de l'administration
-- **STRIPE_SECRET_KEY** — clé secrète API Stripe du compte RÉCUPÈRE
-- **STRIPE_WEBHOOK_SECRET** — secret du webhook `https://jade-pegasus-f6e204.netlify.app/api/stripe-webhook`
-- **RECUPERE_STRIPE_PRICE_ID** — `price_1UNs7PRS9BxXjI4TydRc7JIX`
+- **RECUPERE_PAYMENTS_ENABLED** — absent ou `false` par défaut ; ne mettre `true` que pour un test approuvé
+- **STRIPE_SECRET_KEY** — pour les tests uniquement, clé Stripe `sk_test_`; les clés live sont refusées par la garde actuelle
+- **STRIPE_WEBHOOK_SECRET** — secret du webhook de test correspondant à la configuration sandbox
+- **RECUPERE_STRIPE_PRICE_ID** — Price ID créé dans le même environnement de test ; aucun Price ID live codé en dur
 - **RECUPERE_BASE_URL** — `https://jade-pegasus-f6e204.netlify.app`
 - **RESEND_API_KEY** — clé API Resend pour les emails transactionnels
 - **RESEND_FROM** — adresse expéditrice vérifiée dans Resend
 
-Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub.
+Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub. Le paiement reste désactivé tant que la variable de garde n’est pas explicitement activée avec une configuration Stripe de test valide.
 
 ## URLs
 
