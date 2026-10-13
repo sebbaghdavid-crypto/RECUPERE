@@ -88,3 +88,19 @@ test("payout status PAID without explicit provider status is flagged and not cou
  assert.equal(summary.transactions[0].status,"REVIEW_REQUIRED");
  assert.equal(summary.transactions[0].payoutStatus,"REVIEW_REQUIRED");
 });
+
+test("negative cashback amounts cannot reduce wallet balances",()=>{
+ const summary=summarizeWallet([
+  {key:"transaction/capitis/negative",tx:{transactionId:"negative",source:"CAPITIS",status:"APPROVED",providerStatus:"APPROVED",cashbackAmount:-25,currency:"EUR",payoutEligible:true}}
+ ],10);
+ assert.equal(summary.approved,0);
+ assert.equal(summary.transactions[0].cashbackAmount,0);
+});
+
+test("invalid minimum payout configuration falls back to ten euros",()=>{
+ const summary=summarizeWallet([
+  {key:"transaction/capitis/amount",tx:{transactionId:"amount",source:"CAPITIS",status:"APPROVED",providerStatus:"APPROVED",cashbackAmount:8,currency:"EUR",payoutEligible:true}}
+ ],"not-a-number");
+ assert.equal(summary.minimumPayout,10);
+ assert.equal(summary.payoutEligible,false);
+});
