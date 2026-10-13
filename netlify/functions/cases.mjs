@@ -122,6 +122,10 @@ export default async (req) => {
         const item = await getCase(clean(body.accessToken, 100));
         if (!item) return response({ error: "Dossier introuvable." }, 404);
         const status = clean(body.status, 40);
+        // Payment/refund states must come from verified Stripe events, not manual admin edits.
+        if (["PAID", "REFUNDED"].includes(status)) {
+          return response({ error: "Ce statut doit être confirmé par Stripe et ne peut pas être modifié manuellement." }, 409);
+        }
         const result = await transitionCase(item.accessToken,status,{type:"STATUS_CHANGED",note:clean(body.note,2000)});
         if(!result.ok)return response({error:result.reason==="rejected"?"Transition de statut interdite.":"Conflit de mise à jour. Réessayez."},409);
         const { accessToken, ...safe } = result.item;
