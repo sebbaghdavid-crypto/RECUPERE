@@ -47,10 +47,9 @@ form.addEventListener("submit",async e=>{
    formStored=nr.ok;
   }catch(_){formStored=false;}
   form.style.display="none";
-  ok.innerHTML='<h3>Dossier enregistré ✓</h3><p>Votre dossier <strong>'+esc(cd.caseNumber)+'</strong> a bien été créé.</p><p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>'+
+  ok.innerHTML='<h3>Dossier enregistré ✓</h3><p>Votre dossier <strong>'+esc(cd.caseNumber)+'</strong> a bien été créé.</p><p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p>Pour consulter votre dossier, ouvrez votre espace sécurisé et demandez un lien de connexion envoyé par e-mail.</p><p><a class="btn secondary" href="/portal/">Accéder à mon espace sécurisé →</a></p>'+
    (formStored?'':'<p role="status">Attention : le dossier est enregistré, mais la transmission complémentaire du formulaire ou du justificatif n’a pas été confirmée. Ne renvoyez pas une nouvelle demande. Conservez votre numéro de dossier et contactez-nous pour transmettre le justificatif séparément.</p>');
   ok.style.display="block";
-  document.getElementById("trackToken").value=cd.caseNumber;
   ok.scrollIntoView({behavior:"smooth",block:"center"});
  }catch(x){
   err.textContent=x.message||"Le dossier n'a pas pu être enregistré. Vérifiez votre connexion puis réessayez.";
