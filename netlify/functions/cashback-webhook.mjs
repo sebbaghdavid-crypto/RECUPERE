@@ -15,7 +15,7 @@ export default async req=>{try{
  if(!safeEqual(supplied,expected))return out({ok:false,error:"Unauthorized"},401);
  const b=await body(req),tx=String(b.transactionId||b.transactionID||""),click=String(b.clickRef||"");
  if(!tx||!click)return out({ok:false,error:"transactionId/clickRef manquant"},400);
- const key="transaction/"+tx,existing=await store.get(key,{type:"json",consistency:"strong"});
+ const key="transaction/awin/"+tx,existing=await store.get(key,{type:"json",consistency:"strong"});
  if(existing)return out({ok:true,duplicate:true});
  const clickItem=await store.get("click/"+click,{type:"json",consistency:"strong"});
  if(!clickItem)return out({ok:true,unmatched:true});
