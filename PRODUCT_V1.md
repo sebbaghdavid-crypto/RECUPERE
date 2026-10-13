@@ -16,7 +16,7 @@ Ce document décrit l'état du dépôt, pas une certification de production. Les
 - Interface d'administration privée, protégée par une clé d'environnement.
 - Journalisation des changements de dossier.
 - Page publique indiquant que le cashback n'est pas encore ouvert.
-- Checkout Stripe et traitement webhook présents dans le code, mais leur configuration réelle, le prix, le mode test/live et les événements en production restent à vérifier dans le compte Stripe.
+- Checkout Stripe et traitement webhook présents dans le code, mais le paiement est désactivé par défaut. La garde exige un opt-in explicite, une clé `sk_test_` et un Price ID de test explicite ; une clé live est refusée. La configuration de compte, les événements webhook et le parcours sandbox restent à vérifier.
 
 La présence d'une fonctionnalité dans le code ne prouve pas qu'elle fonctionne en production : les comptes tiers, variables d'environnement, domaines, permissions, emails et webhooks doivent être vérifiés séparément.
 
@@ -32,9 +32,9 @@ La présence d'une fonctionnalité dans le code ne prouve pas qu'elle fonctionne
 
 ## Dépendances et contrôles encore nécessaires
 
-1. Générer et valider un package-lock.json reproductible puis faire réussir npm ci.
+1. Le lockfile npm v3 complet est disponible dans la PR #3 ; `npm ci` et les tests ont réussi sur son commit contrôlé. Confirmer sa présence sur le commit candidat final après intégration explicite.
 2. Contrôler les variables de production et le contexte d'exécution dans Netlify, sans exposer leurs valeurs.
-3. Tester le parcours complet en mode test Stripe : création du Checkout, succès, échec, expiration, webhook et idempotence.
+3. Tester le parcours complet en mode test Stripe : activation contrôlée de `RECUPERE_PAYMENTS_ENABLED`, création du Checkout, succès, échec, expiration, webhook et idempotence.
 4. Confirmer dans Stripe le montant, la devise, le mode test/live, les taxes/factures et le secret webhook configuré.
 5. Vérifier la configuration Resend, le domaine d'envoi et la réception réelle des emails.
 6. Vérifier le contrat/API Capitis avec un environnement autorisé; garder AWIN désactivé tant que l'authentification et le format ne sont pas validés.
