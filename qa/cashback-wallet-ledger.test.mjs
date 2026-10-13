@@ -104,3 +104,18 @@ test("invalid minimum payout configuration falls back to ten euros",()=>{
  assert.equal(summary.minimumPayout,10);
  assert.equal(summary.payoutEligible,false);
 });
+
+test("payout marked PAID with a non-approved provider conversion is flagged for review",()=>{
+ const summary=summarizeWallet([
+  {key:"transaction/capitis/provider-pending",tx:{transactionId:"provider-pending",source:"CAPITIS",status:"PENDING",providerStatus:"PENDING",payoutStatus:"PAID",cashbackAmount:15,currency:"EUR",payoutEligible:false}}
+ ],10);
+ assert.equal(summary.paid,0);
+ assert.equal(summary.transactions[0].status,"REVIEW_REQUIRED");
+ assert.equal(summary.transactions[0].payoutStatus,"REVIEW_REQUIRED");
+});
+
+test("zero minimum payout configuration falls back to ten euros",()=>{
+ const summary=summarizeWallet([],0);
+ assert.equal(summary.minimumPayout,10);
+ assert.equal(summary.payoutEligible,false);
+});
