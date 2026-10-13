@@ -4,6 +4,7 @@ import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
 import { indexCase, transitionCase, updateCase } from "./case-store.mjs";
+import { initialCaseStatus } from "./case-state.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -163,7 +164,7 @@ export default async (req) => {
       const analysis = analyzeCase(base);
       const item = {
         ...base,
-        status: "ANALYSIS",
+        status: initialCaseStatus(),
         opportunityLevel: analysis.opportunityLevel,
         estimatedRecovery: analysis.estimatedRecovery,
         confidence: analysis.confidence,
