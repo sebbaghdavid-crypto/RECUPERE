@@ -16,6 +16,7 @@ function verifySignature(rawBody,header){
  const expected=crypto.createHmac("sha256",WEBHOOK_SECRET).update(`${timestamp}.${rawBody}`).digest("hex");
  return signatures.some(signature=>safeEqual(expected,signature));
 }
+export function checkoutSessionDisposition(payment,sessionId){if(!payment?.checkoutSessionId)return "retry";return payment.checkoutSessionId===sessionId?"match":"stale"}
 async function getCase(token){if(!token||!/^[a-zA-Z0-9_-]{20,100}$/.test(token))return null;return store.get(`case/${token}`,{type:"json",consistency:"strong"})}
 async function claimEvent(eventId){
  if(!eventId||!/^evt_[a-zA-Z0-9_]+$/.test(eventId))return false;
@@ -45,7 +46,7 @@ export default async req=>{
   const item=await getCase(token);
   if(!item){await finishEvent(eventId);return response({received:true});}
   if((event.type==="checkout.session.completed"||event.type==="checkout.session.async_payment_succeeded")&&session.payment_status==="paid"){
-   if(!item.payment?.checkoutSessionId||item.payment.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
+   const disposition=checkoutSessionDisposition(item.payment,session.id);if(disposition==="retry"){await releaseEvent(eventId);return response({error:"Checkout session not yet linked; retry."},500)}if(disposition==="stale"){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
    const paidAmount=Number(session.amount_total),paidCurrency=String(session.currency||"").toLowerCase();
    if(paidAmount!==990||paidCurrency!=="eur"){await releaseEvent(eventId);return response({error:"Paiement invalide."},400)}
    const paidAt=new Date().toISOString();
@@ -66,7 +67,7 @@ export default async req=>{
    const emailResult=await sendCustomerEmail({to:result.item.email,name:result.item.name,caseNumber:result.item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${result.item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation.",idempotencyKey:`payment-confirmed|${session.id}`});
    if(!emailResult?.sent){await releaseEvent(eventId);return response({error:"Paiement enregistré ; notification à réessayer."},500)}
   }else if(event.type==="checkout.session.async_payment_failed"){
-   if(item.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
+   const disposition=checkoutSessionDisposition(item.payment,session.id);if(disposition==="retry"){await releaseEvent(eventId);return response({error:"Checkout session not yet linked; retry."},500)}if(disposition==="stale"){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
    const result=await updateCase(token,current=>{if(current.payment?.checkoutSessionId!==session.id)return null;if(current.status==="PAID"||current.payment?.status==="paid")return current;current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"failed",status:"failed"};current.events=Array.isArray(current.events)?current.events:[];if(!current.events.some(e=>e.type==="PAYMENT_FAILED"&&e.checkoutSessionId===session.id))current.events.push({at:new Date().toISOString(),type:"PAYMENT_FAILED",provider:"stripe",checkoutSessionId:session.id,eventId});return current});if(!result.ok){await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500)}
   }else if(event.type==="checkout.session.expired"){
    if(item.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
