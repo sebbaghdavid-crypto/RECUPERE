@@ -14,7 +14,8 @@
 ## 2. Configuration Netlify — ne jamais partager les valeurs secrètes
 Vérifier dans les paramètres Netlify que les variables suivantes existent dans le contexte de production, sans copier leurs valeurs dans GitHub ni dans un chat :
 - [ ] `RECUPERE_ADMIN_KEY` — clé forte et unique.
-- [ ] `STRIPE_SECRET_KEY` — clé du bon environnement Stripe.
+- [ ] `RECUPERE_PAYMENTS_ENABLED` — absent ou `false` par défaut ; ne mettre `true` que pour un test approuvé.
+- [ ] `STRIPE_SECRET_KEY` — en sandbox uniquement une clé `sk_test_`; la garde actuelle refuse les clés live.
 - [ ] `STRIPE_WEBHOOK_SECRET` — secret correspondant exactement au webhook configuré.
 - [ ] `RECUPERE_STRIPE_PRICE_ID` — produit et prix corrects, en EUR, à 9,90 € TTC ou avec la fiscalité explicitement définie.
 - [ ] `RECUPERE_BASE_URL` — URL canonique réelle du site de production.
@@ -31,7 +32,8 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Demander un lien de connexion : lien à usage unique, expiration respectée, cookie sécurisé et déconnexion fonctionnelle.
 - [ ] Vérifier qu'un client ne peut pas lire le dossier d'un autre client.
 - [ ] Vérifier l'administration avec clé valide et invalide, ainsi que les limites de tentatives.
-- [ ] Tester Stripe en mode test : création Checkout, annulation, succès et expiration.
+- [ ] Vérifier que Checkout reste désactivé tant que `RECUPERE_PAYMENTS_ENABLED` n’est pas explicitement à `true`.
+- [ ] Tester Stripe en mode test : création Checkout, annulation, succès et expiration, avec clé `sk_test_` et Price ID de test.
 - [ ] Envoyer un événement Stripe test signé : statut mis à jour uniquement après vérification du webhook.
 - [ ] Simuler une confirmation Stripe arrivant avant l'enregistrement de la session Checkout : le webhook doit demander une nouvelle tentative, pas ignorer définitivement le paiement.
 - [ ] Rejouer le même événement Stripe : aucune double opération ni double notification.
