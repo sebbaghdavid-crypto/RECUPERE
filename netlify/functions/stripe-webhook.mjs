@@ -45,7 +45,7 @@ export default async req=>{
   const item=await getCase(token);
   if(!item){await finishEvent(eventId);return response({received:true});}
   if((event.type==="checkout.session.completed"||event.type==="checkout.session.async_payment_succeeded")&&session.payment_status==="paid"){
-   if(item.payment?.checkoutSessionId&&item.payment.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
+   if(!item.payment?.checkoutSessionId||item.payment.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
    const paidAmount=Number(session.amount_total),paidCurrency=String(session.currency||"").toLowerCase();
    if(paidAmount!==990||paidCurrency!=="eur"){await finishEvent(eventId);return response({error:"Paiement invalide."},400)}
    item.status="PAID";item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
