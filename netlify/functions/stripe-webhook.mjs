@@ -33,6 +33,7 @@ async function claimEvent(eventId){
 async function finishEvent(eventId){if(eventId)await store.setJSON("stripe-event/"+eventId,{status:"done",completedAt:Date.now()})}
 async function releaseEvent(eventId){if(eventId)await store.delete("stripe-event/"+eventId)}
 export default async req=>{
+ let claimedEventId="";
  try{
   if(req.method!=="POST")return response({error:"Méthode non supportée."},405);
   const rawBody=await req.text();if(!verifySignature(rawBody,req.headers.get("stripe-signature")))return response({error:"Signature Stripe invalide."},400);
@@ -40,6 +41,7 @@ export default async req=>{
   const session=event.data?.object,token=session?.metadata?.case_token;
   if(!token)return response({received:true});
   if(!await claimEvent(eventId))return response({received:true,duplicate:true});
+  claimedEventId=eventId;
   const item=await getCase(token);
   if(!item){await finishEvent(eventId);return response({received:true});}
   if((event.type==="checkout.session.completed"||event.type==="checkout.session.async_payment_succeeded")&&session.payment_status==="paid"){
@@ -71,6 +73,6 @@ export default async req=>{
    const result=await updateCase(token,current=>{if(current.payment?.checkoutSessionId!==session.id)return null;if(current.status==="PAID"||current.payment?.status==="paid")return current;current.payment={...(current.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"expired",status:"expired"};current.events=Array.isArray(current.events)?current.events:[];if(!current.events.some(e=>e.type==="PAYMENT_EXPIRED"&&e.checkoutSessionId===session.id))current.events.push({at:new Date().toISOString(),type:"PAYMENT_EXPIRED",provider:"stripe",checkoutSessionId:session.id,eventId});return current});if(!result.ok){await releaseEvent(eventId);return response({error:"Mise à jour du paiement à réessayer."},500)}
   }
   await finishEvent(eventId);return response({received:true});
- }catch(error){console.error("RECUPERE stripe webhook error",error);return response({error:"Erreur temporaire de traitement du webhook."},500)}
+ }catch(error){console.error("RECUPERE stripe webhook error",error);if(claimedEventId){try{await releaseEvent(claimedEventId)}catch(releaseError){console.error("RECUPERE stripe webhook release error",releaseError)}}return response({error:"Erreur temporaire de traitement du webhook."},500)}
 };
 export const config={path:"/.netlify/functions/stripe-webhook"};
