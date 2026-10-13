@@ -28,7 +28,8 @@ La présence d'une fonctionnalité dans le code ne prouve pas qu'elle fonctionne
 - Ne pas autoriser un changement manuel d'administration qui contourne la confirmation serveur d'un paiement.
 - Les dossiers ambigus, les transactions sans devise explicite et les historiques de paiement incertains doivent rester en revue et exclus des sommes payables.
 - Les tests et données fictives ne constituent pas une preuve de récupération d'argent réelle.
-- Ne pas activer de cashback, de paiement ou de versement avant les vérifications de bout en bout et les contrôles de conformité.
+- Le cashback public est bloqué par défaut par `RECUPERE_CASHBACK_ENABLED` ; la synchronisation Capitis exige aussi `RECUPERE_CASHBACK_SYNC_ENABLED=true`. Ne pas activer ces variables avant les vérifications de bout en bout et les contrôles de conformité.
+- Le webhook AWIN reste bloqué par défaut et exige une validation d’authentification séparée.
 
 ## Dépendances et contrôles encore nécessaires
 
