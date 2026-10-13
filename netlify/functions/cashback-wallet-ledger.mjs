@@ -21,7 +21,7 @@ export function summarizeWallet(records,minimumPayout=10){
  let pending=0,approved=0,paid=0;
  const transactions=[];
  for(const {tx} of records){
-  const amount=money(tx.cashbackAmount),currency=String(tx.currency||"UNKNOWN").toUpperCase();
+  const amount=Math.max(0,money(tx.cashbackAmount)),currency=String(tx.currency||"UNKNOWN").toUpperCase();
   const source=String(tx.source||"").toUpperCase();
   const knownSource=source==="CAPITIS"||source==="AWIN";
   const providerStatus=String(tx.providerStatus||tx.status||"").toUpperCase();
@@ -40,11 +40,12 @@ export function summarizeWallet(records,minimumPayout=10){
   transactions.push({
    transactionId:tx.transactionId,status:needsReview?"REVIEW_REQUIRED":providerStatus,
    payoutStatus:needsReview?"REVIEW_REQUIRED":(payoutStatus||"NOT_PAID"),
-   cashbackAmount:tx.cashbackAmount,currency:tx.currency,merchant:tx.merchant,
+   cashbackAmount:amount,currency:tx.currency,merchant:tx.merchant,
    updatedAt:tx.updatedAt||tx.createdAt
   });
  }
  transactions.sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
- const threshold=Math.max(0,money(minimumPayout));
+ const configuredThreshold=Number(minimumPayout);
+ const threshold=Number.isFinite(configuredThreshold)&&configuredThreshold>=0?money(configuredThreshold):10;
  return {pending,approved,payable:approved,paid,minimumPayout:threshold,payoutEligible:approved>=threshold,transactions:transactions.slice(0,20)};
 }
