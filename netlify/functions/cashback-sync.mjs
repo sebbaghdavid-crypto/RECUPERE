@@ -1,4 +1,5 @@
 import {getStore} from "@netlify/blobs";
+import {cashbackSyncEnabled} from "./cashback-feature-guard.mjs";
 import {statusOf,money,preserveCustomerPayoutStatus,isLegacyCapitis,cashbackShare} from "./cashback-ledger.mjs";
 
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
@@ -27,6 +28,7 @@ async function locateRecord(id){
  return {key:canonical,item:null,etag:null,exists:false};
 }
 async function sync(){
+ if(!cashbackSyncEnabled())return {processed:0,reason:"cashback_sync_disabled"};
  if(!process.env.CAPITIS_API_KEY)return {processed:0,reason:"capitis_not_configured"};
  const lockKey="lock/capitis-sync";
  if(!await acquireLock(lockKey))return {processed:0,reason:"sync_already_running"};
