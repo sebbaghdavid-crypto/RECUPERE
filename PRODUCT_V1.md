@@ -11,7 +11,7 @@ Ce document décrit l'état du dépôt, pas une certification de production. Les
 - Formulaire de création de dossier et stockage côté serveur.
 - Vérification du consentement côté serveur.
 - Identifiant de dossier et code d'accès privé.
-- Pièce jointe via le parcours configuré avec Netlify Forms.
+- Le dépôt public de justificatifs est désactivé dans la branche de travail tant qu’un stockage privé avec autorisation par dossier n’est pas implémenté et vérifié.
 - Statut initial en analyse, sans déclencher automatiquement une demande de paiement sur la seule base d'une heuristique.
 - Interface d'administration privée, protégée par une clé d'environnement.
 - Journalisation des changements de dossier.
