@@ -8,10 +8,13 @@ function response(body,status=200){return new Response(JSON.stringify(body),{sta
 function safeEqual(a,b){const aa=Buffer.from(a||"","utf8"),bb=Buffer.from(b||"","utf8");return aa.length===bb.length&&crypto.timingSafeEqual(aa,bb)}
 function verifySignature(rawBody,header){
  if(!WEBHOOK_SECRET||!header)return false;
- const parts=Object.fromEntries(header.split(",").map(x=>x.split("=")).filter(x=>x.length===2)),timestamp=parts.t,signature=parts.v1;
- if(!timestamp||!signature)return false;
+ const parts=header.split(",").map(x=>x.trim().split("=")).filter(x=>x.length===2);
+ const timestamp=parts.find(([key])=>key==="t")?.[1];
+ const signatures=parts.filter(([key])=>key==="v1").map(([,value])=>value);
+ if(!timestamp||!signatures.length)return false;
  const age=Math.abs(Date.now()/1000-Number(timestamp));if(!Number.isFinite(age)||age>300)return false;
- return safeEqual(crypto.createHmac("sha256",WEBHOOK_SECRET).update(`${timestamp}.${rawBody}`).digest("hex"),signature);
+ const expected=crypto.createHmac("sha256",WEBHOOK_SECRET).update(`${timestamp}.${rawBody}`).digest("hex");
+ return signatures.some(signature=>safeEqual(expected,signature));
 }
 async function getCase(token){if(!token||!/^[a-zA-Z0-9_-]{20,100}$/.test(token))return null;return store.get(`case/${token}`,{type:"json",consistency:"strong"})}
 async function claimEvent(eventId){
