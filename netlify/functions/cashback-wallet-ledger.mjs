@@ -29,7 +29,7 @@ export function summarizeWallet(records,minimumPayout=10){
   const legacyStatus=String(tx.status||"").toUpperCase();
   const providerExplicit=String(tx.providerStatus||"").trim()!=="";
   const ambiguousLegacyPaid=legacyStatus==="PAID"&&(!providerExplicit||!payoutStatus);
-  const ambiguousPayoutPaid=payoutStatus==="PAID"&&!providerExplicit;
+  const ambiguousPayoutPaid=payoutStatus==="PAID"&&(!providerExplicit||providerStatus!=="APPROVED");
   const unsupportedCurrency=currency!=="EUR";
   const needsReview=!knownSource||ambiguousLegacyPaid||ambiguousPayoutPaid||unsupportedCurrency;
   if(knownSource&&!unsupportedCurrency&&!ambiguousLegacyPaid&&!ambiguousPayoutPaid){
@@ -46,6 +46,6 @@ export function summarizeWallet(records,minimumPayout=10){
  }
  transactions.sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")));
  const configuredThreshold=Number(minimumPayout);
- const threshold=Number.isFinite(configuredThreshold)&&configuredThreshold>=0?money(configuredThreshold):10;
+ const threshold=Number.isFinite(configuredThreshold)&&configuredThreshold>0?money(configuredThreshold):10;
  return {pending,approved,payable:approved,paid,minimumPayout:threshold,payoutEligible:approved>=threshold,transactions:transactions.slice(0,20)};
 }
