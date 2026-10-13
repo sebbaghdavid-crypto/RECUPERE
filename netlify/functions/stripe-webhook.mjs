@@ -47,10 +47,10 @@ export default async req=>{
   if((event.type==="checkout.session.completed"||event.type==="checkout.session.async_payment_succeeded")&&session.payment_status==="paid"){
    if(!item.payment?.checkoutSessionId||item.payment.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"unmatched_checkout_session"})}
    const paidAmount=Number(session.amount_total),paidCurrency=String(session.currency||"").toLowerCase();
-   if(paidAmount!==990||paidCurrency!=="eur"){await finishEvent(eventId);return response({error:"Paiement invalide."},400)}
+   if(paidAmount!==990||paidCurrency!=="eur"){await releaseEvent(eventId);return response({error:"Paiement invalide."},400)}
    item.status="PAID";item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"paid",status:"paid",paidAt:new Date().toISOString(),customerId:session.customer||null,invoiceId:session.invoice||null};
    await saveCase(item,{type:"PAYMENT_CONFIRMED",provider:"stripe",checkoutSessionId:session.id,amount:9.90,eventId});
-   if(event.type==="checkout.session.completed")await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation.",idempotencyKey:`payment-confirmed|${eventId}`});
+   if(event.type==="checkout.session.completed"){const emailResult=await sendCustomerEmail({to:item.email,name:item.name,caseNumber:item.caseNumber,subject:`RÉCUPÈRE — paiement confirmé ${item.caseNumber}`,title:"Votre paiement est confirmé",body:"Votre paiement de 9,90 € a été confirmé. Votre dossier peut maintenant passer à la préparation de la réclamation.",idempotencyKey:`payment-confirmed|${eventId}`});if(!emailResult?.sent){await releaseEvent(eventId);return response({error:"Paiement enregistré ; notification à réessayer."},500)}}
   }else if(event.type==="checkout.session.async_payment_failed"){
    if(item.payment?.checkoutSessionId!==session.id){await finishEvent(eventId);return response({received:true,ignored:"stale_checkout_session"})}
    item.payment={...(item.payment||{}),provider:"stripe",checkoutSessionId:session.id,paymentStatus:"failed",status:"failed"};await saveCase(item,{type:"PAYMENT_FAILED",provider:"stripe",checkoutSessionId:session.id,eventId});
