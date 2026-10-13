@@ -7,7 +7,7 @@ RÉCUPÈRE est un service français de détection, préparation et suivi de dém
 ## Ce qui fonctionne dans cette V1
 
 - landing publique
-- dépôt de dossier avec justificatif
+- dépôt de dossier ; les justificatifs sont temporairement désactivés pour protéger les données personnelles
 - création persistante d'un numéro de dossier
 - code privé de suivi
 - suivi client
