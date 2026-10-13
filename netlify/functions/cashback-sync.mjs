@@ -32,7 +32,7 @@ async function sync(){
     const share=Math.min(100,Math.max(0,Number(process.env.RECUPERE_CASHBACK_SHARE||80)));
     const cashback=money(Math.max(0,commission*share/100)),newStatus=statusOf(tx);
     const payoutEligible=newStatus==="APPROVED"&&currency==="EUR"&&cashback>0&&cashback<=commission;
-    const key="transaction/"+id;let item=await store.get(key,{type:"json",consistency:"strong"});
+    const key="transaction/capitis/"+id;let item=await store.get(key,{type:"json",consistency:"strong"});
     if(!item)item={transactionId:id,clickToken,clickref:click.clickref,offerId:click.offerId,merchant:click.merchant,email:click.email,transactionAmount:money(tx.saleAmount??tx.amount),commission,cashbackRate:share,cashbackAmount:cashback,currency,status:newStatus,payoutEligible,source:"CAPITIS",createdAt:new Date().toISOString()};
     else{item.commission=commission;item.cashbackAmount=cashback;item.currency=currency;item.status=newStatus;item.payoutEligible=payoutEligible}
     item.rawStatus=String(tx.status||tx.state||"");item.updatedAt=new Date().toISOString();
