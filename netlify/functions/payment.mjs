@@ -68,7 +68,7 @@ export default async (req) => {
     });
     const stripeSession = await stripeResponse.json();
     if (!stripeResponse.ok) {
-      console.error("Stripe Checkout error", session);
+      console.error("Stripe Checkout error", stripeSession?.error?.type || stripeSession?.error?.code || "provider_error");
       return response({ error: "Impossible de créer le paiement." }, 502);
     }
 

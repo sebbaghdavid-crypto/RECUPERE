@@ -5,6 +5,7 @@ import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
 import { indexCase, transitionCase, updateCase } from "./case-store.mjs";
 import { initialCaseStatus } from "./case-state.mjs";
+import { hasConsent } from "./consent.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -133,6 +134,7 @@ export default async (req) => {
         return response(safe);
       }
 
+      if (!hasConsent(body.consent)) return response({ error: "Veuillez accepter l’utilisation des informations pour examiner votre demande." }, 400);
       const email = clean(body.email, 254).toLowerCase();
       const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       if (!(await allowCaseCreate(email, ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);

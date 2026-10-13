@@ -32,7 +32,7 @@ form.addEventListener("submit",async e=>{
  submitButton.disabled=true;submitButton.textContent="Envoi en cours…";
  const fd=new FormData(form);
  const payload=Object.fromEntries(fd.entries());
- delete payload.document;delete payload.consent;
+ delete payload.document;payload.consent=fd.get("consent")==="on";
  try{
   const cr=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
   const cd=await cr.json().catch(()=>({}));
