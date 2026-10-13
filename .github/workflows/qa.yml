@@ -1,9 +1,11 @@
 name: RÉCUPÈRE QA
 on:
   push:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity, chore/reproducible-install-lockfile]
   pull_request:
-    branches: [main]
+    branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
+permissions:
+  contents: read
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -21,8 +23,7 @@ jobs:
             node --check "$f"
           done
       - name: Install test dependencies
-        run: npm install --no-audit --no-fund
-
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run regression tests
         run: node --test qa/*.test.mjs
 
