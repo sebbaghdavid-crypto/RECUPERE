@@ -5,7 +5,7 @@
 ## 1. Code et déploiement
 - [ ] Les PR de fiabilisation du formulaire et du registre cashback ont été relues et fusionnées explicitement.
 - [ ] Les contrôles GitHub Actions sont verts sur les commits exacts destinés à la production.
-- [ ] Un `package-lock.json` est commité et l'installation reproductible avec `npm ci` est validée.
+- [x] La PR #3 contient un `package-lock.json` npm v3 complet et `npm ci` a réussi sur le commit contrôlé ; confirmer sa présence sur le commit candidat final après intégration explicite des PR.
 - [ ] Le déploiement Netlify de production correspond au commit attendu.
 - [ ] Les pages publiques et les fonctions API sont accessibles en HTTPS.
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
