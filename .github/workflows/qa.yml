@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
 permissions:
-  contents: write
+  contents: read
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -22,31 +22,10 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
-      - name: Generate complete npm lockfile
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Upload generated lockfile for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: recupere-generated-lockfile
-          path: package-lock.json
-          if-no-files-found: error
-      - name: Verify clean dependency installation
+      - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run regression tests
         run: node --test qa/*.test.mjs
-      - name: Commit generated lockfile on the lockfile branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/chore/reproducible-install-lockfile'
-        shell: bash
-        run: |
-          if git diff --quiet -- package-lock.json; then
-            echo "package-lock.json is already current"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "Generate complete npm dependency lockfile"
-          git push
 
 concurrency:
   group: recupere-qa-${{ github.ref }}
