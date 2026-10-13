@@ -4,6 +4,8 @@ on:
     branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity, chore/reproducible-install-lockfile]
   pull_request:
     branches: [main, fix/form-submission-reliability, fix/cashback-ledger-integrity]
+permissions:
+  contents: write
 jobs:
   syntax:
     runs-on: ubuntu-latest
@@ -32,6 +34,19 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run regression tests
         run: node --test qa/*.test.mjs
+      - name: Commit generated lockfile on the lockfile branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/chore/reproducible-install-lockfile'
+        shell: bash
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json is already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Generate complete npm dependency lockfile"
+          git push
 
 concurrency:
   group: recupere-qa-${{ github.ref }}
