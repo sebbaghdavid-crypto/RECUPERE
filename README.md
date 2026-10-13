@@ -50,7 +50,7 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 - HTML/CSS/JS statique pour l'interface
 - Netlify Functions pour l'API
 - Netlify Blobs pour la persistance
-- Netlify Forms pour les justificatifs et l'intake
+- Netlify Functions et Netlify Blobs pour les dossiers ; les justificatifs restent désactivés jusqu’à validation d’un stockage privé
 
 ## Prochaines briques
 
