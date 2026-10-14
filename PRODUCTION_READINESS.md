@@ -4,11 +4,11 @@
 
 ## 1. Code et déploiement
 - [x] Les corrections du formulaire et du registre cashback sont intégrées à `main` via les PR #1 et #2.
-- [x] Les contrôles GitHub Actions sont verts sur le commit `8e6a1a24032b227eda17f80384199523c3c026c6` (run #266) ; relancer après toute modification du code.
+- [x] Les contrôles GitHub Actions ont réussi sur le commit intégré via la PR #6 (run #268) ; relancer après toute modification du code.
 - [x] `package-lock.json` npm v3 est présent sur `main` et `npm ci --ignore-scripts --no-audit --no-fund` a réussi sur le commit intégré via la PR #5.
-- [ ] Le déploiement Netlify de production correspond au commit `8e6a1a24032b227eda17f80384199523c3c026c6`.
-- [ ] Vérifier le commit publié dans le tableau de bord Netlify : une vérification externe a reçu HTTP 401 sur le site, l’administration et le portail ; cela peut refléter une protection d’accès et ne permet pas de confirmer la version déployée.
-- [ ] Les pages publiques et les fonctions API sont accessibles en HTTPS.
+- [x] Le tableau de bord Netlify affiche la production publiée sur `main@6d238fd` (confirmation visuelle du 14 octobre 2026).
+- [x] L'ouverture de l'URL de production principale a été confirmée dans le navigateur du responsable le 14 octobre 2026. Une vérification externe a reçu HTTP 401 ; l'accès externe peut être limité par la protection Netlify et doit être évalué selon le public visé.
+- [ ] Vérifier dans le navigateur le parcours public et les fonctions API en HTTPS ; l'ouverture de la page d'accueil seule ne valide pas encore les formulaires ni les API.
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
 - [ ] Une procédure de retour à la version précédente est connue et testée.
 
