@@ -3,10 +3,11 @@
 **Règle :** ne pas activer la production commerciale tant que tous les contrôles bloquants ci-dessous ne sont pas validés. Les contrôles GitHub ne remplacent pas les tests dans le navigateur ni les vérifications des comptes fournisseurs.
 
 ## 1. Code et déploiement
-- [ ] Les PR de fiabilisation du formulaire et du registre cashback ont été relues et fusionnées explicitement.
-- [ ] Les contrôles GitHub Actions sont verts sur les commits exacts destinés à la production.
-- [x] La PR #3 contient un `package-lock.json` npm v3 complet et `npm ci` a réussi sur le commit contrôlé ; confirmer sa présence sur le commit candidat final après intégration explicite des PR.
-- [ ] Le déploiement Netlify de production correspond au commit attendu.
+- [x] Les corrections du formulaire et du registre cashback sont intégrées à `main` via les PR #1 et #2.
+- [x] Les contrôles GitHub Actions sont verts sur le commit `8e6a1a24032b227eda17f80384199523c3c026c6` (run #266) ; relancer après toute modification du code.
+- [x] `package-lock.json` npm v3 est présent sur `main` et `npm ci --ignore-scripts --no-audit --no-fund` a réussi sur le commit intégré via la PR #5.
+- [ ] Le déploiement Netlify de production correspond au commit `8e6a1a24032b227eda17f80384199523c3c026c6`.
+- [ ] Vérifier le commit publié dans le tableau de bord Netlify : une vérification externe a reçu HTTP 401 sur le site, l’administration et le portail ; cela peut refléter une protection d’accès et ne permet pas de confirmer la version déployée.
 - [ ] Les pages publiques et les fonctions API sont accessibles en HTTPS.
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
 - [ ] Une procédure de retour à la version précédente est connue et testée.
@@ -24,11 +25,13 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Les variables de test ne sont pas mélangées avec celles de production.
 
 ## 3. Tests manuels obligatoires — sans paiement réel
+
+**Périmètre actuel :** aucune dépense, aucune facturation, aucun paiement réel et aucun cashback public. Ne pas activer `RECUPERE_PAYMENTS_ENABLED`, `RECUPERE_CASHBACK_ENABLED` ou `RECUPERE_CASHBACK_SYNC_ENABLED` pour accélérer le lancement.
 - [ ] Vérifier que l'API refuse la création d'un dossier si le consentement explicite n'est pas fourni.
 - [ ] Vérifier que tout nouveau dossier reste en analyse jusqu'à validation humaine et qu'aucune heuristique ne déclenche seule le paiement.
 - [ ] Créer un dossier sans justificatif : un seul dossier est créé et le numéro affiché correspond à celui de l'administration.
 - [ ] Les justificatifs sont désactivés dans la branche de travail : avant de les réactiver, implémenter un stockage privé avec contrôle d’accès par dossier, puis tester PDF/image, association au bon dossier et absence d’accès public. Ne pas utiliser Netlify Forms pour des justificatifs personnels sans protection supplémentaire validée.
-- [ ] Vérifier la réception d'e-mail, les liens et le dossier dans le portail client.
+- [ ] Vérifier la réception d'e-mail, les liens et le dossier dans le portail client. Les tests des deux testeurs peuvent être ajoutés ultérieurement ; ce point reste un bloqueur avant ouverture publique.
 - [ ] Demander un lien de connexion : lien à usage unique, expiration respectée, cookie sécurisé et déconnexion fonctionnelle.
 - [ ] Vérifier qu'un client ne peut pas lire le dossier d'un autre client.
 - [ ] Vérifier l'administration avec clé valide et invalide, ainsi que les limites de tentatives.
