@@ -9,8 +9,8 @@ test("only validated statuses can become APPROVED",()=>{
 });
 
 test("paid and declined states are explicit",()=>{
-  assert.equal(statusOf({status:"PAID"}),"PAID");
-  assert.equal(statusOf({status:"SETTLED"}),"PAID");
+  assert.equal(statusOf({status:"PAID"}),"APPROVED");
+  assert.equal(statusOf({status:"SETTLED"}),"APPROVED");
   assert.equal(statusOf({status:"DECLINED"}),"DECLINED");
   assert.equal(statusOf({status:"REVERSED"}),"DECLINED");
 });

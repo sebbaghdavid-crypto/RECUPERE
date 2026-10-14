@@ -7,14 +7,14 @@ RÉCUPÈRE est un service français de détection, préparation et suivi de dém
 ## Ce qui fonctionne dans cette V1
 
 - landing publique
-- dépôt de dossier avec justificatif
+- dépôt de dossier ; les justificatifs sont temporairement désactivés pour protéger les données personnelles
 - création persistante d'un numéro de dossier
 - code privé de suivi
 - suivi client
 - administration des dossiers
-- paiement Stripe Checkout à 9,90 € par dossier
-- confirmation de paiement par webhook Stripe côté serveur
-- facture Stripe créée lors du Checkout
+- intégration Stripe Checkout présente dans le code, mais désactivée par défaut
+- garde-fou de paiement : activation explicite, clé `sk_test_` obligatoire et Price ID explicitement configuré
+- confirmation de paiement par webhook Stripe côté serveur lorsque le parcours est configuré en sandbox
 - recherche et filtres
 - changement de statut
 - historique des événements
@@ -29,14 +29,15 @@ Le dépôt est connecté à Netlify : les pushes sur `main` déclenchent les dé
 Créer dans Netlify ces variables d'environnement, disponibles pour les Functions :
 
 - **RECUPERE_ADMIN_KEY** — clé secrète de l'administration
-- **STRIPE_SECRET_KEY** — clé secrète API Stripe du compte RÉCUPÈRE
-- **STRIPE_WEBHOOK_SECRET** — secret du webhook `https://jade-pegasus-f6e204.netlify.app/api/stripe-webhook`
-- **RECUPERE_STRIPE_PRICE_ID** — `price_1UNs7PRS9BxXjI4TydRc7JIX`
+- **RECUPERE_PAYMENTS_ENABLED** — absent ou `false` par défaut ; ne mettre `true` que pour un test approuvé
+- **STRIPE_SECRET_KEY** — pour les tests uniquement, clé Stripe `sk_test_`; les clés live sont refusées par la garde actuelle
+- **STRIPE_WEBHOOK_SECRET** — secret du webhook de test correspondant à la configuration sandbox
+- **RECUPERE_STRIPE_PRICE_ID** — Price ID créé dans le même environnement de test ; aucun Price ID live codé en dur
 - **RECUPERE_BASE_URL** — `https://jade-pegasus-f6e204.netlify.app`
 - **RESEND_API_KEY** — clé API Resend pour les emails transactionnels
 - **RESEND_FROM** — adresse expéditrice vérifiée dans Resend
 
-Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub.
+Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dans GitHub. Le paiement reste désactivé tant que la variable de garde n’est pas explicitement activée avec une configuration Stripe de test valide.
 
 ## URLs
 
@@ -49,7 +50,7 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 - HTML/CSS/JS statique pour l'interface
 - Netlify Functions pour l'API
 - Netlify Blobs pour la persistance
-- Netlify Forms pour les justificatifs et l'intake
+- Netlify Functions et Netlify Blobs pour les dossiers ; les justificatifs restent désactivés jusqu’à validation d’un stockage privé
 
 ## Prochaines briques
 
@@ -62,20 +63,13 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 7. pilote utilisateurs réels
 
 
-## Cashback autonome
+## Cashback — non ouvert au public
 
-RÉCUPÈRE dispose maintenant d'un moteur cashback prêt à connecter à un réseau d'affiliation :
-- catalogue d'offres via `RECUPERE_CASHBACK_OFFERS`
-- génération de liens Awin via `AWIN_API_TOKEN` + `AWIN_PUBLISHER_ID`
-- clickref unique pour rattacher une vente à un utilisateur
-- webhook `/api/cashback-webhook` pour recevoir les transactions
-- portefeuille `/api/cashback-wallet?email=...`
-- synchronisation quotidienne des statuts de transactions
-- part reversée configurable via `RECUPERE_CASHBACK_SHARE` (défaut 80 % de la commission)
-- seuil indicatif de paiement via `RECUPERE_MIN_PAYOUT` (défaut 10 €)
+Le cashback est en préparation et n'est pas disponible pour les utilisateurs. Les pages publiques ne doivent pas promettre de gains ou de versements. Le webhook AWIN reste désactivé tant qu'une authentification compatible n'a pas été validée. Les versements clients ne sont pas implémentés.
 
-### Variables supplémentaires
+Les variables et fonctions cashback présentes dans le dépôt sont des éléments de développement, pas une offre active. La mise en service exige validation réelle de Capitis, du réseau d'affiliation, du suivi des conversions, de la devise et du processus de paiement. Aucun solde ne doit être présenté comme un virement effectué.
 
-`AWIN_API_TOKEN`, `AWIN_PUBLISHER_ID`, `RECUPERE_CASHBACK_OFFERS`, `RECUPERE_CASHBACK_SHARE`, `RECUPERE_MIN_PAYOUT`.
+## Documents de lancement
 
-Le callback Awin à configurer est `https://jade-pegasus-f6e204.netlify.app/api/cashback-webhook`. Le taux affiché côté utilisateur doit provenir d'un programme partenaire réellement actif : aucune commission ou récupération n'est garantie avant validation du réseau.
+- PRODUCTION_READINESS.md — contrôles techniques, manuels, sécurité, fournisseurs et pilote.
+- LEGAL_CONTENT_DRAFT.md — informations juridiques à compléter et faire vérifier ; document non publiable tel quel.

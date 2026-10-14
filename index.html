@@ -12,46 +12,43 @@
 <section id="comment"><div class="container"><div class="section-title"><div class="eyebrow">Simple et humain</div><h2>Pas besoin de connaître les règles.</h2><p>Vous racontez. Nous structurons. Vous validez avant toute réclamation.</p></div><div class="steps"><div class="step"><div class="num">01 — VOUS RACONTEZ</div><h3>Décrivez votre situation</h3><p>Quelques informations et, si utile, un justificatif.</p></div><div class="step"><div class="num">02 — ON PRÉPARE</div><h3>On identifie la suite</h3><p>Le dossier est examiné et une démarche est préparée lorsque les éléments le permettent.</p></div><div class="step"><div class="num">03 — VOUS DÉCIDEZ</div><h3>Vous gardez la main</h3><p>Aucun envoi automatique sans validation.</p></div></div></div></section>
 <section id="categories"><div class="container"><div class="section-title"><div class="eyebrow">Situations</div><h2>Commencez par ce qui vous arrive.</h2></div><div class="categories"><span class="tag">Remboursement retardé</span><span class="tag">Colis non livré</span><span class="tag">Retour / rétractation</span><span class="tag">Produit défectueux</span><span class="tag">Garantie</span><span class="tag">Produit rappelé</span><span class="tag">Retard de train</span><span class="tag">Vol retardé / annulé</span><span class="tag">Bagage</span><span class="tag">Télécom</span><span class="tag">Énergie</span><span class="tag">Assurance</span><span class="tag">Logement</span></div></div></section>
 <section id="dossier" class="form-section"><div class="container"><div class="form-wrap"><div class="form-head"><div class="eyebrow">Premier pas gratuit</div><h2>Racontez-nous votre situation.</h2><p>Votre dossier est transmis à RÉCUPÈRE pour examen.</p></div><div id="success" class="success"><h3>Dossier reçu ✓</h3><p>Votre demande a bien été transmise. Nous allons examiner les éléments communiqués.</p><a class="btn secondary" href="#dossier">Envoyer un autre dossier</a></div><div id="error" class="error"></div>
-<form name="recupere-pilote" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" enctype="multipart/form-data"><input type="hidden" name="form-name" value="recupere-pilote"><input type="hidden" name="subject" data-remove-prefix value="Nouveau dossier RÉCUPÈRE — %{submissionId}"><p style="display:none"><label>Ne pas remplir <input name="bot-field"></label></p>
+<form name="recupere-pilote" method="POST">
 <div class="grid"><div class="field"><label>Prénom</label><input name="name" required></div><div class="field"><label>Email</label><input name="email" type="email" required></div></div>
 <div class="grid"><div class="field"><label>Situation</label><select name="category" required><option value="">Choisir…</option><option>Remboursement / retour</option><option>Colis jamais livré</option><option>Produit défectueux / garantie</option><option>Produit rappelé</option><option>Train en retard</option><option>Vol retardé / annulé</option><option>Bagage</option><option>Télécom / abonnement</option><option>Énergie / facture</option><option>Assurance</option><option>Logement</option><option>Autre</option></select></div><div class="field"><label>Montant concerné (€)</label><input name="amount" type="number" min="0" step=".01"></div></div>
 <div class="grid"><div class="field"><label>Entreprise / organisme</label><input name="company"></div><div class="field"><label>Référence / commande</label><input name="reference"></div></div>
 <div class="field"><label>Que s'est-il passé ?</label><textarea name="description" required></textarea></div>
-<div class="field"><label>Justificatif — facultatif</label><input name="document" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+<div class="note" role="note">Les justificatifs ne sont pas encore acceptés en ligne. Pour protéger vos données, ne joignez pas de document ni d’information bancaire ou d’identité à ce stade.</div>
 <div class="check"><input name="consent" type="checkbox" required><label>J'accepte que les informations transmises soient utilisées pour examiner ma demande et me recontacter au sujet de ce dossier.</label></div>
 <div class="note">🔒 Ne transmettez pas de mot de passe, code bancaire ou identifiant secret.</div><button class="btn" type="submit">Envoyer mon dossier →</button></form></div></div></section>
-<section style="padding:55px 0;background:#e6f2e8"><div class="container"><div class="section-title"><div class="eyebrow">NOUVEAU — CASHBACK</div><h2>Et si chaque achat pouvait aussi vous rapporter ?</h2><p>Découvrez les offres partenaires RÉCUPÈRE. Les commissions sont suivies automatiquement et le cashback n’est crédité qu’après confirmation.</p><a class="btn" href="/cashback/">Voir les offres cashback →</a></div></div></section><section class="portal" id="suivi"><div class="container"><div class="section-title"><div class="eyebrow" style="color:#9fd1bb">Votre dossier</div><h2>Suivez ce que RÉCUPÈRE fait pour vous.</h2><p>Entrez votre code de suivi reçu après l'envoi du dossier.</p></div><div class="track"><div class="track-grid"><input id="trackToken" placeholder="Votre numéro de dossier"><button class="btn" id="trackBtn">Voir mon dossier</button></div><div id="trackResult" class="track-result"></div></div></div></section></main><footer><div class="container"><strong>RÉCUPÈRE</strong> — Service de préparation et de suivi des démarches. Aucun remboursement n'est garanti.</div></footer>
+<section style="padding:55px 0;background:#e6f2e8"><div class="container"><div class="section-title"><div class="eyebrow">CASHBACK — EN PRÉPARATION</div><h2>Les offres cashback ne sont pas encore ouvertes.</h2><p>Cette fonctionnalité est en cours de validation. Aucun cashback n’est actuellement garanti et aucun virement client n’est encore disponible. Nous communiquerons son ouverture après validation des partenaires et des modalités de paiement.</p></div></div></section><section class="portal" id="suivi"><div class="container"><div class="section-title"><div class="eyebrow" style="color:#9fd1bb">Votre dossier</div><h2>Suivez ce que RÉCUPÈRE fait pour vous.</h2><p>Pour protéger vos informations, connectez-vous grâce au lien envoyé à votre adresse e-mail.</p><a class="btn" href="/portal/">Accéder à mon espace sécurisé →</a></div></div></section></main><footer><div class="container"><strong>RÉCUPÈRE</strong> — Service de préparation et de suivi des démarches. Aucun remboursement n'est garanti.</div></footer>
 <script>
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
 const form=document.querySelector("form"),ok=document.getElementById("success"),err=document.getElementById("error");
-const caseNumberInput=document.createElement("input");caseNumberInput.type="hidden";caseNumberInput.name="case_number";form.appendChild(caseNumberInput);
-form.addEventListener("submit",async e=>{e.preventDefault();err.style.display="none";const fd=new FormData(form);const payload=Object.fromEntries(fd.entries());delete payload.document;delete payload.consent;
-try{
- const cr=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
- const cd=await cr.json();if(!cr.ok)throw Error(cd.error||"Création impossible");
- caseNumberInput.value=cd.caseNumber;
- const nr=await fetch("/",{method:"POST",body:fd});if(!nr.ok)throw Error("Transmission du justificatif impossible");
- form.style.display="none";
- ok.querySelector("p").innerHTML='Votre dossier <strong>'+cd.caseNumber+'</strong> est enregistré. Votre espace est sécurisé par votre session.';
- ok.innerHTML+='<p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p><a class="btn secondary" href="#suivi">Suivre mon dossier</a></p>';
- ok.style.display="block";document.getElementById("trackToken").value=cd.caseNumber;ok.scrollIntoView({behavior:"smooth",block:"center"});
-}catch(x){err.textContent=x.message||"La transmission a échoué. Vérifiez votre connexion puis réessayez.";err.style.display="block";}};
-const trackBtn=document.getElementById("trackBtn"),trackToken=document.getElementById("trackToken"),trackResult=document.getElementById("trackResult");
-function renderTrack(c){
-let pay='';
-if(c.status==="PAYMENT_REQUIRED" && c.payment?.status!=="paid"){
- pay='<div style="margin:20px 0;padding:18px;background:#edf3ed;border-radius:14px"><strong>Paiement requis</strong><p style="color:#63756f">Le paiement de 9,90 € débloque la préparation et le suivi de votre dossier.</p><button class="btn" id="payBtn">Payer 9,90 € →</button></div>';
-}
-trackResult.innerHTML=(c.analysisLabel?'<div style="margin-bottom:18px;padding:16px;background:#f4f5f1;border-radius:14px"><strong>'+esc(c.analysisLabel)+'</strong><p style="margin:6px 0;color:#63756f">'+esc(c.analysisSummary||'')+'</p>'+(c.estimatedRecovery!==null?'<b>Récupération estimée : '+esc(c.estimatedRecovery)+' €</b>':'')+'</div>':'')+'<div class="status-line"><span>Dossier</span><b>'+esc(c.caseNumber)+'</b></div><div class="status-line"><span>Statut</span><span class="status-badge">'+esc(c.status)+'</span></div><div class="status-line"><span>Situation</span><b>'+esc(c.category||"—")+'</b></div><div class="status-line"><span>Montant concerné</span><b>'+esc(c.amount||"—")+' €</b></div><h4>Historique</h4>'+((c.events||[]).slice().reverse().map(e=>'<div class="status-line"><span>'+esc(new Date(e.at).toLocaleString("fr-FR"))+'</span><b>'+esc(e.type)+(e.status?" · "+esc(e.status):"")+'</b></div>').join(""))}
-async function startPayment(){
-const caseNumber=trackToken.value.trim(); if(!caseNumber)return;
-const r=await fetch("/api/payment",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({caseNumber})});
-const d=await r.json(); if(!r.ok)throw Error(d.error||"Paiement indisponible.");
-if(d.alreadyPaid){await track();return}
-window.location.href=d.checkoutUrl;
-}
-async function track(){const caseNumber=trackToken.value.trim();if(!caseNumber){trackResult.innerHTML='<p>Entrez votre code de suivi.</p>';return}trackResult.innerHTML='<p>Recherche…</p>';try{const r=await fetch("/api/portal?case="+encodeURIComponent(caseNumber));const c=await r.json();if(!r.ok)throw Error(c.error);renderTrack(c)}catch(e){trackResult.innerHTML='<p style="color:#9b4d3e">'+(e.message||"Dossier introuvable.")+'</p>'}}
-trackBtn.onclick=track;
-trackResult.addEventListener("click",e=>{if(e.target.id==="payBtn")startPayment().catch(x=>alert(x.message||"Paiement indisponible."));});
+
+form.addEventListener("submit",async e=>{
+ e.preventDefault();err.style.display="none";
+ const submitButton=form.querySelector('button[type="submit"]');
+ const originalLabel=submitButton.textContent;
+ submitButton.disabled=true;submitButton.textContent="Envoi en cours…";
+ const fd=new FormData(form);
+ const payload=Object.fromEntries(fd.entries());
+ payload.consent=fd.get("consent")==="on";
+ try{
+  const cr=await fetch("/api/cases",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+  const cd=await cr.json().catch(()=>({}));
+  if(!cr.ok)throw Error(cd.error||"Le dossier n'a pas pu être enregistré (HTTP "+cr.status+").");
+  // L'API est la source de vérité ; aucune copie secondaire des données n'est créée dans Netlify Forms.
+  form.style.display="none";
+  ok.innerHTML='<h3>Dossier enregistré ✓</h3><p>Votre dossier <strong>'+esc(cd.caseNumber)+'</strong> a bien été créé.</p><p class="case-number">Dossier : '+esc(cd.caseNumber)+'</p><p>Pour consulter votre dossier, ouvrez votre espace sécurisé et demandez un lien de connexion envoyé à votre adresse e-mail.</p><p><a class="btn secondary" href="/portal/">Accéder à mon espace sécurisé →</a></p>';
+  ok.style.display="block";
+  ok.scrollIntoView({behavior:"smooth",block:"center"});
+ }catch(x){
+  err.textContent=x.message||"Le dossier n'a pas pu être enregistré. Vérifiez votre connexion puis réessayez.";
+  err.style.display="block";
+ }finally{
+  submitButton.disabled=false;submitButton.textContent=originalLabel;
+ }
+});
+
 
 </script></body></html>

@@ -14,4 +14,5 @@ const transitions={
  REFUNDED:new Set(["CLOSED"]),
  CANCELLED:new Set(["CLOSED"])
 };
+export function initialCaseStatus(){return "ANALYSIS"}
 export function canTransition(from,to){return from===to||Boolean(transitions[from]?.has(to))}

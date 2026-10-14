@@ -1,9 +1,11 @@
 import { getStore } from "@netlify/blobs";
-import { allowCaseCreate, allowAdminRequest, getSession, createSession, sessionCookie } from "./auth.mjs";
+import { allowCaseCreate, allowAdminRequest, getSession } from "./auth.mjs";
 import { analyzeCase } from "./analysis.mjs";
 import { buildClaim } from "./claim.mjs";
 import { sendCustomerEmail } from "./notifications.mjs";
 import { indexCase, transitionCase, updateCase } from "./case-store.mjs";
+import { initialCaseStatus } from "./case-state.mjs";
+import { hasConsent } from "./consent.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -122,12 +124,17 @@ export default async (req) => {
         const item = await getCase(clean(body.accessToken, 100));
         if (!item) return response({ error: "Dossier introuvable." }, 404);
         const status = clean(body.status, 40);
+        // Payment/refund states must come from verified Stripe events, not manual admin edits.
+        if (["PAID", "REFUNDED"].includes(status)) {
+          return response({ error: "Ce statut doit être confirmé par Stripe et ne peut pas être modifié manuellement." }, 409);
+        }
         const result = await transitionCase(item.accessToken,status,{type:"STATUS_CHANGED",note:clean(body.note,2000)});
         if(!result.ok)return response({error:result.reason==="rejected"?"Transition de statut interdite.":"Conflit de mise à jour. Réessayez."},409);
         const { accessToken, ...safe } = result.item;
         return response(safe);
       }
 
+      if (!hasConsent(body.consent)) return response({ error: "Veuillez accepter l’utilisation des informations pour examiner votre demande." }, 400);
       const email = clean(body.email, 254).toLowerCase();
       const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
       if (!(await allowCaseCreate(email, ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);
@@ -159,7 +166,7 @@ export default async (req) => {
       const analysis = analyzeCase(base);
       const item = {
         ...base,
-        status: analysis.opportunityLevel === "STRONG" ? "PAYMENT_REQUIRED" : "ANALYSIS",
+        status: initialCaseStatus(),
         opportunityLevel: analysis.opportunityLevel,
         estimatedRecovery: analysis.estimatedRecovery,
         confidence: analysis.confidence,
@@ -176,7 +183,6 @@ export default async (req) => {
       };
       await store.setJSON(`case/${token}`, item);
       await indexCase(item);
-      const sessionToken = await createSession(item.email);
       const emailResult = await sendCustomerEmail({
         to: item.email, name: item.name, caseNumber: item.caseNumber,
         subject: `RÉCUPÈRE — votre dossier ${item.caseNumber} est reçu`,
@@ -191,7 +197,7 @@ export default async (req) => {
           return current;
         });
       }
-      return new Response(JSON.stringify({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel, emailSent: emailResult.sent }), { status: 201, headers: { ...jsonHeaders, "Set-Cookie": sessionCookie(sessionToken) } });
+      return response({ ok: true, caseNumber, status: item.status, opportunityLevel: item.opportunityLevel, estimatedRecovery: item.estimatedRecovery, confidence: item.confidence, analysisLabel: item.analysisLabel, emailSent: emailResult.sent }, 201);
     }
 
     return response({ error: "Méthode non supportée." }, 405);

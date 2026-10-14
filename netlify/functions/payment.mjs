@@ -1,11 +1,13 @@
 import { getStore } from "@netlify/blobs";
 import { allowPaymentRequest, getSession } from "./auth.mjs";
 import { findOwnedCaseRaw, updateCase } from "./case-store.mjs";
+import { paymentConfiguration } from "./payment-guard.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
-const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID || "price_1UNs7PRS9BxXjI4TydRc7JIX";
+const PRICE_ID = process.env.RECUPERE_STRIPE_PRICE_ID;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const BASE_URL = process.env.RECUPERE_BASE_URL || "https://jade-pegasus-f6e204.netlify.app";
+const PAYMENT_CONFIGURATION = paymentConfiguration({ enabled: process.env.RECUPERE_PAYMENTS_ENABLED, secretKey: STRIPE_SECRET_KEY, priceId: PRICE_ID });
 
 function response(body, status=200) {
   return new Response(JSON.stringify(body), {
@@ -22,6 +24,7 @@ async function getCase(token) {
 export default async (req) => {
   try {
     if (req.method !== "POST") return response({ error: "Méthode non supportée." }, 405);
+    if (!PAYMENT_CONFIGURATION.ok) return response({ error: "Le paiement est désactivé jusqu’à la validation du pilote." }, 503);
     const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (!(await allowPaymentRequest(ip))) return response({ error: "Trop de demandes. Réessayez plus tard." }, 429);
     if (!STRIPE_SECRET_KEY) return response({ error: "Paiement momentanément indisponible." }, 503);
@@ -35,6 +38,10 @@ export default async (req) => {
     if (!item) return response({ error: "Dossier introuvable ou accès refusé." }, 404);
     if (item.payment?.status === "paid" || item.status === "PAID") {
       return response({ ok: true, alreadyPaid: true, caseNumber: item.caseNumber });
+    }
+    // Only dossiers explicitly marked for payment by the analysis can open Checkout.
+    if (item.status !== "PAYMENT_REQUIRED") {
+      return response({ error: "Ce dossier ne nécessite pas de paiement à cette étape." }, 409);
     }
     if (item.payment?.checkoutSessionId && item.payment?.status === "pending" && item.payment?.checkoutUrl) {
       return response({ ok: true, checkoutUrl: item.payment.checkoutUrl, caseNumber: item.caseNumber, reusedCheckout: true });
@@ -58,19 +65,20 @@ export default async (req) => {
       headers: {
         "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `recupere-checkout-${item.accessToken}`
+        "Idempotency-Key": `recupere-checkout-${item.accessToken}-${1 + (Array.isArray(item.events) ? item.events.filter(event => event.type === "PAYMENT_FAILED" || event.type === "PAYMENT_EXPIRED").length : 0)}`
       },
       body: params
     });
     const stripeSession = await stripeResponse.json();
     if (!stripeResponse.ok) {
-      console.error("Stripe Checkout error", session);
+      console.error("Stripe Checkout error", stripeSession?.error?.type || stripeSession?.error?.code || "provider_error");
       return response({ error: "Impossible de créer le paiement." }, 502);
     }
 
     const now = new Date().toISOString();
     const result = await updateCase(item.accessToken, current => {
       if (current.payment?.status === "paid" || current.status === "PAID") return null;
+      if (current.status !== "PAYMENT_REQUIRED") return null;
       if (current.payment?.checkoutSessionId && current.payment?.status === "pending" && current.payment?.checkoutUrl) return current;
       current.status = "PAYMENT_REQUIRED";
       current.payment = { provider:"stripe", checkoutSessionId:stripeSession.id, checkoutUrl:stripeSession.url, paymentStatus:"pending", status:"pending", amount:990, currency:"eur", createdAt:now };
