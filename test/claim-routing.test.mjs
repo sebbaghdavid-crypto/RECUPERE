@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { identifyProviders, validateProviderRecord } from "../src/claim-routing/engine.mjs";
+import registry from "../src/claim-routing/registry.json" with { type: "json" };
 
 const providers = [
   {
@@ -77,4 +78,31 @@ test("invalid registry regex does not crash identification", () => {
     identifier_patterns: [{ pattern: "[" }]
   }]);
   assert.equal(result.status, "not_identified");
+});
+
+
+test("curated registry entries pass official URL validation", () => {
+  assert.ok(Array.isArray(registry.providers));
+  assert.ok(registry.providers.length >= 2);
+  for (const provider of registry.providers) {
+    const result = validateProviderRecord(provider);
+    assert.equal(result.valid, true, `${provider.provider_id}: ${result.errors.join(", ")}`);
+  }
+});
+
+test("official merchant domain selects the matching curated provider", () => {
+  const result = identifyProviders({
+    merchant: "SNCF Connect",
+    merchant_domain: "https://www.sncf-connect.com",
+    order_number: "AB123456"
+  }, registry.providers);
+  assert.equal(result.candidates[0].provider_id, "sncf-connect");
+  assert.equal(result.confidence, "high");
+  assert.equal(result.external_action_allowed, false);
+});
+
+test("provider registry keeps public authority sources separate from merchant URLs", () => {
+  const fnac = registry.providers.find((provider) => provider.provider_id === "fnac");
+  assert.ok(fnac);
+  assert.ok(fnac.source_urls.some((url) => new URL(url).hostname.endsWith("gouv.fr")));
 });
