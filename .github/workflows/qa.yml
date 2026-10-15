@@ -22,11 +22,15 @@ jobs:
             echo "Checking $f"
             node --check "$f"
           done
+          node --check src/claim-routing/engine.mjs
       - name: Install test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Run regression tests
+      - name: Run existing regression tests
         run: node --test qa/*.test.mjs
+
+      - name: Run claim-routing engine tests
+        run: node --test test/claim-routing.test.mjs
 
 concurrency:
   group: recupere-qa-${{ github.ref }}
