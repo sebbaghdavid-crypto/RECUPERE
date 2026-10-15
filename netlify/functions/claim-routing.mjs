@@ -3,6 +3,7 @@ import { hasConsent } from "./consent.mjs";
 import { identifyProviders, validateProviderRecord } from "../../src/claim-routing/engine.mjs";
 import registry from "../../src/claim-routing/registry.json" with { type: "json" };
 
+const MAX_BODY_BYTES = 16_384;
 const jsonHeaders = {
   "content-type": "application/json; charset=utf-8",
   "cache-control": "no-store",
@@ -34,7 +35,7 @@ export default async function handler(req) {
   }
 
   const contentLength = Number(req.headers.get("content-length") || 0);
-  if (contentLength > 16_384) {
+  if (contentLength > MAX_BODY_BYTES) {
     return response({ error: "Requête trop volumineuse." }, 413);
   }
 
@@ -44,11 +45,18 @@ export default async function handler(req) {
       return response({ error: "Connexion requise pour analyser ces informations." }, 401);
     }
 
-    if (!(await allowClaimRoutingRequest(session.email, ipFor(req)))) {
-      return response({ error: "Trop d'analyses. Réessayez dans une minute." }, 429);
+    // Check the actual body size as well; Content-Length may be absent.
+    const rawBody = await req.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
+      return response({ error: "Requête trop volumineuse." }, 413);
     }
 
-    const body = await req.json().catch(() => null);
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return response({ error: "Requête JSON invalide." }, 400);
+    }
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return response({ error: "Requête JSON invalide." }, 400);
     }
@@ -69,6 +77,11 @@ export default async function handler(req) {
 
     if (![input.merchant, input.merchant_domain, input.email_domain, input.order_number, input.invoice_number, input.reference].some(Boolean)) {
       return response({ error: "Indiquez au moins un indice : marchand, domaine ou référence." }, 400);
+    }
+
+    // Invalid requests do not consume the analysis quota.
+    if (!(await allowClaimRoutingRequest(session.email, ipFor(req)))) {
+      return response({ error: "Trop d'analyses. Réessayez dans une minute." }, 429);
     }
 
     const result = identifyProviders(input, validatedProviders);
