@@ -31,7 +31,7 @@ test("customer portal inline JavaScript stays syntactically valid",()=>{
 });
 
 test("portal magic-link request sends JSON headers and handles network errors",()=>{
-  assert.match(portal,/headers:\{"content-type":"application\\/json"\}/);
-  assert.match(portal,/Connexion momentanément indisponible/);
-  assert.match(portal,/finally\{button\.disabled=false/);
+  assert.ok(portal.includes('headers:{"content-type":"application/json"}'));
+  assert.ok(portal.includes("Connexion momentanément indisponible"));
+  assert.ok(portal.includes("finally{button.disabled=false"));
 });
