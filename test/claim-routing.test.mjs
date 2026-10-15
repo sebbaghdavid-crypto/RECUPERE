@@ -33,17 +33,21 @@ test("an order number format alone never identifies a provider", () => {
   assert.equal(result.external_action_allowed, false);
 });
 
-test("exact merchant name is a candidate but asks for confirmation when ambiguous", () => {
+test("exact merchant name ranks the candidate and still requires user confirmation", () => {
   const result = identifyProviders({ merchant: "Boutique Exemple", order_number: "CMD-123456" }, providers);
   assert.equal(result.candidates[0].provider_id, "shop-a");
   assert.equal(result.confidence, "high");
+  assert.equal(result.needs_clarification, true);
   assert.equal(result.external_action_allowed, false);
 });
 
-test("official domain is strong evidence and URLs are limited to declared official domains", () => {
+test("official domain is strong evidence and URLs stay on declared official domains", () => {
   const result = identifyProviders({ merchant_domain: "https://www.boutique-exemple.test", reference: "CMD-123456" }, providers);
   assert.equal(result.candidates[0].provider_id, "shop-a");
-  assert.ok(result.candidates[0].official_urls.every((url) => url.startsWith("https://boutique-exemple.test/")));
+  assert.ok(result.candidates[0].official_urls.every((url) => {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return new URL(url).protocol === "https:" && host === "boutique-exemple.test";
+  }));
 });
 
 test("unknown merchant produces no guessed provider", () => {
