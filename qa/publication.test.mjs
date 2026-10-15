@@ -25,7 +25,7 @@ test("production publish directory is built from an explicit static allowlist", 
     "dist/cashback/index.html",
     "dist/_headers"
   ]) {
-    await assert.doesNotReject(access(join(root, path)), `expected ${path} in static output`);
+    await assert.doesNotReject(() => access(join(root, path)), `expected ${path} in static output`);
   }
 
   for (const path of [
