@@ -26,7 +26,7 @@ test("customer portal inline JavaScript stays syntactically valid",()=>{
   const scripts=[...portal.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).filter(script=>script.trim());
   assert.ok(scripts.length>0,"portal should contain an inline script");
   for(const [index,script] of scripts.entries()){
-    assert.doesNotThrow(()=>new (requireVmScript())(script,{filename:"portal-inline-"+index+".js"}));
+    assert.doesNotThrow(()=>new Script(script,{filename:"portal-inline-"+index+".js"}));
   }
 });
 
