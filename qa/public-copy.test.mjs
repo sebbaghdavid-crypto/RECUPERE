@@ -23,10 +23,9 @@ test("cashback page stays closed until provider and payout validation",()=>{
 const portal=readFileSync(new URL("../portal/index.html",import.meta.url),"utf8");
 
 test("customer portal inline JavaScript stays syntactically valid",()=>{
-  const scripts=[...portal.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(match=>match[1]).filter(script=>script.trim());
+  const scripts=[...portal.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match=>match[1]).filter(script=>script.trim());
   assert.ok(scripts.length>0,"portal should contain an inline script");
   for(const [index,script] of scripts.entries()){
     assert.doesNotThrow(()=>new Script(script,{filename:"portal-inline-"+index+".js"}));
   }
 });
-
