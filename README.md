@@ -56,11 +56,14 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 
 1. emails transactionnels
 2. authentification client
-3. moteur d'analyse par catégorie
-4. préparation des réclamations
-5. relances automatiques
-6. portail client complet
-7. pilote utilisateurs réels
+3. référentiel vérifié des fournisseurs et démarches, avec sources et dates de contrôle
+4. moteur d'identification fournisseur à partir des numéros de commande/facture et autres indices, avec niveau de confiance explicable
+5. analyse d'éligibilité par catégorie et préparation de réclamations sourcées
+6. OCR sécurisé des justificatifs, uniquement après mise en place d'un stockage privé audité
+7. relances automatiques soumises aux règles et au consentement de l'utilisateur
+8. pilote utilisateurs réels avec mesure des faux positifs
+
+La spécification du moteur d'identification IA est documentée dans AI_PROVIDER_ROUTING_SPEC.md. Le référentiel public peut aider à vérifier l'identité légale d'une entreprise, mais ne suffit pas à retrouver un fournisseur à partir d'un numéro de commande isolé.
 
 
 ## Cashback — non ouvert au public

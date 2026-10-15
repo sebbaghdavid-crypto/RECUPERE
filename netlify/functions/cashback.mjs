@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { getSession } from "./auth.mjs";
+import { cashbackPublicEnabled } from "./cashback-feature-guard.mjs";
 const store=getStore({name:"recupere-cashback",region:"eu-central-1"});
 const headers={"content-type":"application/json; charset=utf-8","cache-control":"no-store"};
 const out=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
@@ -55,6 +56,7 @@ async function capitisLink(offer,email){
 }
 
 export default async req=>{try{
+ if (!cashbackPublicEnabled()) return out({ok:false,error:"Cashback désactivé jusqu’à validation du pilote."},503);
  const u=new URL(req.url);
  if(req.method==="GET"){
    const os=await offers();
