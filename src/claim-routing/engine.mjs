@@ -156,8 +156,7 @@ export function validateProviderRecord(provider) {
   }
   const urls = [
     ...(Array.isArray(provider?.official_claim_urls) ? provider.official_claim_urls : []),
-    ...(Array.isArray(provider?.official_support_urls) ? provider.official_support_urls : []),
-    ...(Array.isArray(provider?.source_urls) ? provider.source_urls : [])
+    ...(Array.isArray(provider?.official_support_urls) ? provider.official_support_urls : [])
   ];
   if (urls.some((url) => !safeOfficialUrl(url, domains))) {
     errors.push("Les URL d'aide/réclamation doivent être HTTPS et appartenir à un domaine officiel déclaré");
