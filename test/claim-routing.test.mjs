@@ -10,7 +10,7 @@ const providers = [
     official_domains: ["boutique-exemple.test"],
     official_support_urls: ["https://boutique-exemple.test/aide"],
     official_claim_urls: ["https://boutique-exemple.test/reclamation"],
-    source_urls: ["https://boutique-exemple.test/conditions"],
+    source_urls: ["https://www.service-public.gouv.fr/particuliers/vosdroits/F10868"],
     checked_at: "2026-10-15",
     identifier_patterns: [{ pattern: "^CMD-[0-9]{6}$", description: "référence CMD à six chiffres" }]
   },
@@ -48,6 +48,7 @@ test("official domain is strong evidence and URLs stay on declared official doma
     const host = new URL(url).hostname.replace(/^www\./, "");
     return new URL(url).protocol === "https:" && host === "boutique-exemple.test";
   }));
+  assert.ok(result.candidates[0].source_urls.includes("https://www.service-public.gouv.fr/particuliers/vosdroits/F10868"));
 });
 
 test("unknown merchant produces no guessed provider", () => {
