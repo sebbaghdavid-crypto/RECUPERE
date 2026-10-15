@@ -4,11 +4,13 @@
 
 ## 1. Code et déploiement
 - [x] Les corrections du formulaire et du registre cashback sont intégrées à `main` via les PR #1 et #2.
-- [x] Les contrôles GitHub Actions ont réussi sur le commit intégré via la PR #6 (run #268) ; relancer après toute modification du code.
+- [x] Les contrôles GitHub Actions ont réussi sur le commit intégré via les workflows QA récents ; relancer après toute modification du code.
 - [x] `package-lock.json` npm v3 est présent sur `main` et `npm ci --ignore-scripts --no-audit --no-fund` a réussi sur le commit intégré via la PR #5.
-- [x] Le tableau de bord Netlify affiche la production publiée sur `main@6d238fd` (confirmation visuelle du 14 octobre 2026).
-- [x] L'ouverture de l'URL de production principale a été confirmée dans le navigateur du responsable le 14 octobre 2026. Une vérification externe a reçu HTTP 401 ; l'accès externe peut être limité par la protection Netlify et doit être évalué selon le public visé.
-- [ ] Vérifier dans le navigateur le parcours public et les fonctions API en HTTPS ; l'ouverture de la page d'accueil seule ne valide pas encore les formulaires ni les API.
+- [x] Le dépôt `main` contient désormais la correction de syntaxe du portail (commit `446b3721e729e7bc8440eb3c792cee32485f8fc7`). Le tableau de bord Netlify doit être vérifié pour confirmer que ce commit précis est publié en production.
+- [x] L'ouverture du portail a été confirmée dans le navigateur du responsable le 15 octobre 2026 et l'erreur JavaScript précédente n'apparaît plus dans sa console. Les vérifications externes du portail et des API reçoivent HTTP 401 ; le site semble privé/protégé dans Netlify. Avant tout pilote, décider explicitement si le site de production doit être accessible au public et ajuster la protection via le tableau de bord uniquement après accord.
+- [ ] Confirmer que le commit `446b3721e729e7bc8440eb3c792cee32485f8fc7` est publié sur Netlify Production.
+- [ ] Décider du niveau d'accès Netlify adapté au pilote ; ne pas exposer le site publiquement sans décision explicite.
+- [ ] Vérifier dans le navigateur le parcours complet et les fonctions API en HTTPS ; l'ouverture du formulaire de connexion seule ne valide pas encore les formulaires ni les API.
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
 - [ ] Une procédure de retour à la version précédente est connue et testée.
 
