@@ -1,4 +1,4 @@
-import { getSession } from "./auth.mjs";
+import { getSession, allowClaimRoutingRequest } from "./auth.mjs";
 import { hasConsent } from "./consent.mjs";
 import { identifyProviders, validateProviderRecord } from "../../src/claim-routing/engine.mjs";
 import registry from "../../src/claim-routing/registry.json" with { type: "json" };
@@ -15,6 +15,12 @@ function response(body, status = 200) {
 
 function clean(value, max = 180) {
   return String(value ?? "").trim().slice(0, max);
+}
+
+function ipFor(req) {
+  return req.headers.get("x-nf-client-connection-ip")
+    || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || "unknown";
 }
 
 const validatedProviders = (Array.isArray(registry.providers) ? registry.providers : [])
@@ -36,6 +42,10 @@ export default async function handler(req) {
     const session = await getSession(req);
     if (!session?.email) {
       return response({ error: "Connexion requise pour analyser ces informations." }, 401);
+    }
+
+    if (!(await allowClaimRoutingRequest(session.email, ipFor(req)))) {
+      return response({ error: "Trop d'analyses. Réessayez dans une minute." }, 429);
     }
 
     const body = await req.json().catch(() => null);
