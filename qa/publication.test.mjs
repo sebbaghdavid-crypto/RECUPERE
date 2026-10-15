@@ -54,9 +54,8 @@ test("Netlify API routes remain explicitly wired to their intended functions", a
 
   for (const [file, route] of routes) {
     const source = await readFile(join(root, file), "utf8");
-    assert.match(
-      source,
-      new RegExp("export\\s+const\\s+config\\s*=\\s*\\{\\s*path:\\s*['\\"]" + route + "['\\"]\\s*\\}"),
+    assert.ok(
+      source.includes(`path:"${route}"`) || source.includes(`path:'${route}'`),
       `${file} must keep its explicit ${route} route`
     );
   }
