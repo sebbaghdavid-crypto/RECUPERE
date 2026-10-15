@@ -107,14 +107,18 @@ test("provider registry keeps public authority sources separate from merchant UR
   assert.ok(fnac.source_urls.some((url) => new URL(url).hostname.endsWith("gouv.fr")));
 });
 
-test("routing endpoint requires session, consent and rate limiting, and never persists input", async () => {
+test("routing endpoint requires session, consent, bounded body and rate limiting", async () => {
   const source = await readFile(new URL("../netlify/functions/claim-routing.mjs", import.meta.url), "utf8");
   assert.match(source, /getSession\(req\)/);
   assert.match(source, /allowClaimRoutingRequest\(session\.email, ipFor\(req\)\)/);
   assert.match(source, /hasConsent\(body\.consent\)/);
+  assert.match(source, /MAX_BODY_BYTES\s*=\s*16_384/);
+  assert.match(source, /new TextEncoder\(\)\.encode\(rawBody\)\.byteLength/);
   assert.match(source, /persisted:\s*false/);
   assert.match(source, /external_action_performed:\s*false/);
   assert.match(source, /Do not log user-supplied order numbers/);
+  assert.ok(source.indexOf("hasConsent(body.consent)") < source.indexOf("allowClaimRoutingRequest(session.email, ipFor(req))"),
+    "validate consent before consuming rate-limit quota");
 });
 
 test("provider routing rate limits both account and IP", async () => {
