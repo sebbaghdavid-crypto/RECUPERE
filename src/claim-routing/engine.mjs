@@ -16,10 +16,19 @@ const normalizeDomain = (value) => {
   }
 };
 
+const safeHttpsUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
 const safeOfficialUrl = (value, officialDomains = []) => {
   try {
     const url = new URL(value);
-    if (url.protocol !== "https:") return false;
+    if (!safeHttpsUrl(value)) return false;
     const host = url.hostname.toLowerCase().replace(/^www\./, "");
     return officialDomains.some((domain) => {
       const normalized = normalizeDomain(domain);
@@ -100,7 +109,7 @@ export function identifyProviders(input = {}, providers = []) {
         score,
         evidence,
         official_urls: [...new Set(officialUrls)],
-        source_urls: (Array.isArray(provider.source_urls) ? provider.source_urls : []).filter((url) => safeOfficialUrl(url, domains)),
+        source_urls: (Array.isArray(provider.source_urls) ? provider.source_urls : []).filter(safeHttpsUrl),
         checked_at: provider.checked_at || null
       });
     }
@@ -151,7 +160,11 @@ export function validateProviderRecord(provider) {
     ...(Array.isArray(provider?.source_urls) ? provider.source_urls : [])
   ];
   if (urls.some((url) => !safeOfficialUrl(url, domains))) {
-    errors.push("Chaque URL doit être HTTPS et appartenir à un domaine officiel déclaré");
+    errors.push("Les URL d'aide/réclamation doivent être HTTPS et appartenir à un domaine officiel déclaré");
+  }
+  const sources = Array.isArray(provider?.source_urls) ? provider.source_urls : [];
+  if (sources.some((url) => !safeHttpsUrl(url))) {
+    errors.push("Les URL de sources doivent utiliser HTTPS");
   }
   if (provider?.identifier_patterns && !Array.isArray(provider.identifier_patterns)) {
     errors.push("identifier_patterns doit être un tableau");
