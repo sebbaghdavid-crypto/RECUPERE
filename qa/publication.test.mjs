@@ -1,11 +1,25 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
+
+async function listFiles(directory, prefix = "") {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const paths = [];
+  for (const entry of entries) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      paths.push(...await listFiles(join(directory, entry.name), rel));
+    } else {
+      paths.push(rel.split(sep).join("/"));
+    }
+  }
+  return paths;
+}
 
 test("production publish directory is built from an explicit static allowlist", async () => {
   const config = await readFile(join(root, "netlify.toml"), "utf8");
@@ -17,6 +31,20 @@ test("production publish directory is built from an explicit static allowlist", 
     encoding: "utf8"
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
+
+  const expectedPublishedFiles = [
+    "_headers",
+    "admin/index.html",
+    "cashback/index.html",
+    "index.html",
+    "portal/index.html"
+  ];
+  const actualPublishedFiles = (await listFiles(join(root, "dist"))).sort();
+  assert.deepEqual(
+    actualPublishedFiles,
+    [...expectedPublishedFiles].sort(),
+    "dist must contain only the explicitly approved browser-facing files"
+  );
 
   for (const path of [
     "dist/index.html",
@@ -33,7 +61,8 @@ test("production publish directory is built from an explicit static allowlist", 
     "dist/PRODUCTION_READINESS.md",
     "dist/package.json",
     "dist/netlify/functions/auth.mjs",
-    "dist/qa/publication.test.mjs"
+    "dist/qa/publication.test.mjs",
+    "dist/src/claim-routing/registry.json"
   ]) {
     await assert.rejects(access(join(root, path)), `unexpected published path: ${path}`);
   }
