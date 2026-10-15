@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { identifyProviders, validateProviderRecord } from "../src/claim-routing/engine.mjs";
 import registry from "../src/claim-routing/registry.json" with { type: "json" };
 
@@ -80,7 +81,6 @@ test("invalid registry regex does not crash identification", () => {
   assert.equal(result.status, "not_identified");
 });
 
-
 test("curated registry entries pass official URL validation", () => {
   assert.ok(Array.isArray(registry.providers));
   assert.ok(registry.providers.length >= 2);
@@ -105,4 +105,20 @@ test("provider registry keeps public authority sources separate from merchant UR
   const fnac = registry.providers.find((provider) => provider.provider_id === "fnac");
   assert.ok(fnac);
   assert.ok(fnac.source_urls.some((url) => new URL(url).hostname.endsWith("gouv.fr")));
+});
+
+test("routing endpoint requires session, consent and rate limiting, and never persists input", async () => {
+  const source = await readFile(new URL("../netlify/functions/claim-routing.mjs", import.meta.url), "utf8");
+  assert.match(source, /getSession\(req\)/);
+  assert.match(source, /allowClaimRoutingRequest\(session\.email, ipFor\(req\)\)/);
+  assert.match(source, /hasConsent\(body\.consent\)/);
+  assert.match(source, /persisted:\s*false/);
+  assert.match(source, /external_action_performed:\s*false/);
+  assert.match(source, /Do not log user-supplied order numbers/);
+});
+
+test("provider routing rate limits both account and IP", async () => {
+  const source = await readFile(new URL("../netlify/functions/auth.mjs", import.meta.url), "utf8");
+  assert.match(source, /rateLimit\("claim-routing-email",e,20\)/);
+  assert.match(source, /rateLimit\("claim-routing-ip",i,40\)/);
 });
