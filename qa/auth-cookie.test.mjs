@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 
 const source = readFileSync(new URL("../netlify/functions/auth.mjs", import.meta.url), "utf8");
+const portal = readFileSync(new URL("../netlify/functions/portal.mjs", import.meta.url), "utf8");
 const declaration = source.match(/export const sessionCookie=.*$/m)?.[0];
 
 test("session cookie is host-only, secure, and unavailable to JavaScript", () => {
@@ -16,7 +17,7 @@ test("session cookie is host-only, secure, and unavailable to JavaScript", () =>
   assert.doesNotMatch(declaration, /Domain=/i);
 });
 
-test("logout can expire the session cookie immediately", () => {
+test("logout expires the session cookie immediately", () => {
   assert.match(declaration, /maxAge=604800/);
-  assert.match(source, /sessionCookie\("",0\)/);
+  assert.match(portal, /sessionCookie\("",0\)/);
 });
