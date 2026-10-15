@@ -2,6 +2,14 @@
 
 **Règle :** ne pas activer la production commerciale tant que tous les contrôles bloquants ci-dessous ne sont pas validés. Les contrôles GitHub ne remplacent pas les tests dans le navigateur ni les vérifications des comptes fournisseurs.
 
+## État de l'audit — 15 octobre 2026 (branche de travail, non fusionnée)
+
+- [x] La PR #18 restreint la publication statique à `dist/` et ajoute des en-têtes de sécurité de base ; CI GitHub réussi sur le commit `41137c5`.
+- [x] Le contrôle Netlify signale la prévisualisation prête, mais les tests navigateur sont interceptés par la protection d'accès Netlify (« This site is private »). Les routes API et en-têtes HTTP n'ont donc pas été vérifiés de bout en bout.
+- [x] L'endpoint `/api/cashback` vérifie désormais `RECUPERE_CASHBACK_ENABLED` avant de répondre aux demandes ; désactivé par défaut et couvert par un test de régression.
+- [ ] Obtenir un accès autorisé à la prévisualisation ou une méthode de test approuvée, puis vérifier les réponses API, les en-têtes et les parcours utilisateur.
+- [ ] Ne pas fusionner la PR ni modifier les contrôles d'accès Netlify avant validation fonctionnelle et décision explicite sur l'accès pilote.
+
 ## 1. Code et déploiement
 - [x] Les corrections du formulaire et du registre cashback sont intégrées à `main` via les PR #1 et #2.
 - [x] Les contrôles GitHub Actions ont réussi sur le commit intégré via les workflows QA récents ; relancer après toute modification du code.
