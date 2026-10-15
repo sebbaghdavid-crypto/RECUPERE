@@ -20,24 +20,24 @@ test("session cookie is host-only, secure, and unavailable to JavaScript", () =>
 
 test("logout expires the session cookie immediately", () => {
   assert.match(declaration, /maxAge=604800/);
-  assert.match(portal, /sessionCookie\("",0\)/);
+  assert.ok(portal.includes('sessionCookie("",0)'), "logout must expire the cookie");
 });
 
-test("magic links expire after 15 minutes and are claimed with compare-and-swap", () => {
-  assert.match(source, /Date\.now\(\)\+900000/);
-  assert.match(source, /if\(!m\|\|m\.used\|\|new Date\(m\.expiresAt\)<=new Date\(\)\)return null/);
-  assert.match(source, /setJSON\(key,used,\{onlyIfMatch:current\.etag\}\)/);
-  assert.match(source, /if\(!claimed\.modified\)return null/);
+test("magic links have a 15-minute expiry and are claimed atomically", () => {
+  assert.ok(source.includes("Date.now()+900000"), "magic link expiry is 15 minutes");
+  assert.ok(source.includes("if(!m||m.used||new Date(m.expiresAt)<=new Date())return null"), "used and expired links are rejected");
+  assert.ok(source.includes("setJSON(key,used,{onlyIfMatch:current.etag})"), "magic link claim uses compare-and-swap");
+  assert.ok(source.includes("if(!claimed.modified)return null"), "a failed concurrent claim is rejected");
 });
 
-test("portal dossier lookup always supplies the authenticated session email", () => {
-  assert.match(portal, /findCase\(n,s\.email\)/);
-  assert.match(portal, /listOwnedCases\(email\)/);
-  assert.match(portal, /findOwnedCase\(email,caseNumber\)/);
+test("portal dossier lookup is scoped to the authenticated session email", () => {
+  assert.ok(portal.includes("findCase(n,s.email)"), "single dossier lookup uses session email");
+  assert.ok(portal.includes("return listOwnedCases(email)"), "listing is delegated to owner-scoped lookup");
+  assert.ok(portal.includes("return findOwnedCase(email,n)"), "single dossier lookup is delegated to owner-scoped lookup");
 });
 
-test("owner index lookup rechecks the stored dossier email and strips access tokens from client results", () => {
-  assert.match(caseStore, /String\(item\.email\)\.toLowerCase\(\)===String\(email\)\.toLowerCase\(\)/);
-  assert.match(caseStore, /const \{accessToken,\.\.\.safe\}=item/);
-  assert.match(caseStore, /export async function findOwnedCase\(email,caseNumber\)/);
+test("owner lookup rechecks stored email and client results omit access tokens", () => {
+  assert.ok(caseStore.includes("String(item.email).toLowerCase()===String(email).toLowerCase()"), "stored dossier email is checked");
+  assert.ok(caseStore.includes("const {accessToken,...safe}=item"), "access token is removed from sanitized results");
+  assert.ok(caseStore.includes("export async function findOwnedCase(email,caseNumber)"), "public owner-scoped lookup exists");
 });
