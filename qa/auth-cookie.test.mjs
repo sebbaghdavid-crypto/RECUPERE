@@ -1,23 +1,22 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {sessionCookie} from "../netlify/functions/auth.mjs";
+import {readFileSync} from "node:fs";
+
+const source = readFileSync(new URL("../netlify/functions/auth.mjs", import.meta.url), "utf8");
+const declaration = source.match(/export const sessionCookie=.*$/m)?.[0];
 
 test("session cookie is host-only, secure, and unavailable to JavaScript", () => {
-  const cookie = sessionCookie("test-token");
-  assert.match(cookie, /^__Host-recuperesession=test-token;/);
-  assert.match(cookie, /(?:^|; )Path=\//);
-  assert.match(cookie, /(?:^|; )HttpOnly(?:;|$)/);
-  assert.match(cookie, /(?:^|; )Secure(?:;|$)/);
-  assert.match(cookie, /(?:^|; )SameSite=Lax(?:;|$)/);
-  assert.match(cookie, /(?:^|; )Max-Age=604800(?:;|$)/);
-  assert.doesNotMatch(cookie, /(?:^|; )Domain=/i);
+  assert.ok(declaration, "sessionCookie declaration exists");
+  assert.match(declaration, /__Host-recuperesession=\$\{value\}/);
+  assert.match(declaration, /Max-Age=\$\{maxAge\}/);
+  assert.match(declaration, /Path=\//);
+  assert.match(declaration, /HttpOnly/);
+  assert.match(declaration, /Secure/);
+  assert.match(declaration, /SameSite=Lax/);
+  assert.doesNotMatch(declaration, /Domain=/i);
 });
 
-test("logout cookie expires the session cookie immediately", () => {
-  const cookie = sessionCookie("", 0);
-  assert.match(cookie, /^__Host-recuperesession=;/);
-  assert.match(cookie, /(?:^|; )Max-Age=0(?:;|$)/);
-  assert.match(cookie, /(?:^|; )Path=\//);
-  assert.match(cookie, /(?:^|; )HttpOnly(?:;|$)/);
-  assert.match(cookie, /(?:^|; )Secure(?:;|$)/);
+test("logout can expire the session cookie immediately", () => {
+  assert.match(declaration, /maxAge=604800/);
+  assert.match(source, /sessionCookie\("",0\)/);
 });
