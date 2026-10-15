@@ -72,4 +72,11 @@ test("published HTML keeps API calls same-origin and the payment feature guarded
 
   const payment = await readFile(join(root, "netlify/functions/payment.mjs"), "utf8");
   assert.match(payment, /if\s*\(!PAYMENT_CONFIGURATION\.ok\)\s*return response\([^;]+503\)/);
+
+  const cashback = await readFile(join(root, "netlify/functions/cashback.mjs"), "utf8");
+  assert.match(cashback, /import\s*\{\s*cashbackPublicEnabled\s*\}\s*from\s*["']\.\/cashback-feature-guard\.mjs["']/);
+  const cashbackGuardAt = cashback.indexOf("cashbackPublicEnabled()");
+  const requestHandlingAt = cashback.indexOf("const u=new URL(req.url)");
+  assert.ok(cashbackGuardAt >= 0 && requestHandlingAt >= 0 && cashbackGuardAt < requestHandlingAt,
+    "cashback feature guard must run before the endpoint handles any request");
 });
