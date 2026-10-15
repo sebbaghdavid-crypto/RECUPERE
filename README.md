@@ -52,15 +52,25 @@ Cette clé sert à protéger `/admin/`. Elle ne doit jamais être committée dan
 - Netlify Blobs pour la persistance
 - Netlify Functions et Netlify Blobs pour les dossiers ; les justificatifs restent désactivés jusqu’à validation d’un stockage privé
 
+## Routage des réclamations — en cours de validation
+
+Une première brique de routage fournisseur est développée dans la PR #19 :
+- comparaison explicable du nom marchand, du domaine et des références ;
+- référentiel initial limité à SNCF Connect et Fnac, avec liens officiels ;
+- analyse protégée par session et consentement explicite depuis le portail ;
+- aucune référence saisie n'est conservée par cette analyse ;
+- aucun envoi de réclamation ni action externe automatique.
+
+Cette brique reste en brouillon et ne doit pas être mise en production avant validation des tests, du déploiement sécurisé et des parcours utilisateur. Le référentiel est incomplet et la recherche web automatique n'est pas encore intégrée.
+
 ## Prochaines briques
 
-1. emails transactionnels
-2. authentification client
-3. moteur d'analyse par catégorie
-4. préparation des réclamations
-5. relances automatiques
-6. portail client complet
-7. pilote utilisateurs réels
+1. valider et sécuriser l'intégration du routage fournisseur
+2. élargir le référentiel avec des sources officielles vérifiées
+3. recherche documentaire et Internet avec traçabilité des sources
+4. analyse OCR après mise en place d'un stockage privé audité
+5. relances automatiques après validation humaine et cadrage légal
+6. pilote utilisateurs réels
 
 
 ## Cashback — non ouvert au public
