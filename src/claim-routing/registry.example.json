@@ -1,0 +1,39 @@
+{
+  "_comment": "EXEMPLE DE STRUCTURE UNIQUEMENT. Ne pas utiliser comme référentiel de production : les domaines .test sont fictifs.",
+  "schema_version": 1,
+  "providers": [
+    {
+      "provider_id": "example-provider",
+      "display_name": "Fournisseur Exemple",
+      "legal_name": "Exemple SAS",
+      "country": "FR",
+      "category": "e-commerce",
+      "official_domains": ["fournisseur-exemple.test"],
+      "official_support_urls": ["https://fournisseur-exemple.test/aide"],
+      "official_claim_urls": ["https://fournisseur-exemple.test/reclamation"],
+      "identifier_patterns": [
+        {
+          "pattern": "^CMD-[0-9]{6}$",
+          "flags": "i",
+          "description": "Format fictif de référence",
+          "reliability": "low"
+        }
+      ],
+      "required_evidence": [],
+      "eligibility_rules": [],
+      "exclusions": [],
+      "deadlines": [],
+      "refund_or_claim_types": [],
+      "steps": [],
+      "contact_channels": [],
+      "source_urls": ["https://fournisseur-exemple.test/conditions"],
+      "source_type": "official",
+      "checked_at": null,
+      "valid_from": null,
+      "valid_until": null,
+      "confidence_policy": "Aucun format de numéro ne peut identifier seul un fournisseur.",
+      "human_review_required": true,
+      "notes": "Remplacer uniquement après vérification manuelle des sources officielles."
+    }
+  ]
+}

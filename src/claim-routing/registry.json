@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "providers": [
+    {
+      "provider_id": "sncf-connect",
+      "display_name": "SNCF Connect",
+      "legal_name": "SNCF Connect",
+      "country": "FR",
+      "category": "transport-rail",
+      "official_domains": ["sncf-connect.com"],
+      "official_support_urls": [
+        "https://www.sncf-connect.com/aide/contact"
+      ],
+      "official_claim_urls": [
+        "https://www.sncf-connect.com/aide/faire-une-reclamation"
+      ],
+      "identifier_patterns": [],
+      "required_evidence": ["référence de dossier ou billet", "date du voyage", "description du problème"],
+      "eligibility_rules": ["Vérifier les règles selon le type de trajet et le motif de la demande."],
+      "exclusions": [],
+      "deadlines": ["Les délais diffèrent selon le motif ; vérifier la page officielle au moment de la démarche."],
+      "refund_or_claim_types": ["retard ou suppression de train", "problème de réservation", "échange ou remboursement"],
+      "steps": ["Ouvrir la page officielle de réclamation", "Vérifier le canal applicable au trajet ou à la réservation", "Confirmer les délais et justificatifs"],
+      "contact_channels": ["centre d'aide officiel"],
+      "source_urls": [
+        "https://www.sncf-connect.com/aide/faire-une-reclamation",
+        "https://www.service-public.gouv.fr/particuliers/vosdroits/F10868"
+      ],
+      "source_type": "official",
+      "checked_at": "2026-10-15",
+      "valid_from": "2026-10-15",
+      "valid_until": null,
+      "confidence_policy": "Le nom ou le domaine peut identifier le service ; une référence seule ne suffit pas.",
+      "human_review_required": true,
+      "notes": "Référentiel initial ; revérifier les pages et délais avant toute démarche."
+    },
+    {
+      "provider_id": "fnac",
+      "display_name": "Fnac",
+      "legal_name": "Fnac",
+      "country": "FR",
+      "category": "e-commerce-electronics",
+      "official_domains": ["fnac.com"],
+      "official_support_urls": [
+        "https://www.fnac.com/aide"
+      ],
+      "official_claim_urls": [
+        "https://www.fnac.com/aide"
+      ],
+      "identifier_patterns": [],
+      "required_evidence": ["numéro de commande ou facture", "date d'achat", "description du problème"],
+      "eligibility_rules": ["Pour une commande Marketplace, le vendeur partenaire peut être l'interlocuteur initial."],
+      "exclusions": [],
+      "deadlines": ["Vérifier les conditions applicables à l'achat et au vendeur concerné."],
+      "refund_or_claim_types": ["commande", "livraison", "produit défectueux", "retour ou remboursement"],
+      "steps": ["Ouvrir l'aide officielle", "Consulter les commandes du compte client", "Vérifier si la commande est vendue par Fnac ou par un vendeur partenaire"],
+      "contact_channels": ["centre d'aide officiel", "espace client"],
+      "source_urls": [
+        "https://www.fnac.com/aide",
+        "https://www.fnac.com/aide?question=comment-fonctionne-le-service-apres-vente-pour-nos-vendeurs-partenaires",
+        "https://www.service-public.gouv.fr/particuliers/vosdroits/F10868"
+      ],
+      "source_type": "official",
+      "checked_at": "2026-10-15",
+      "valid_from": "2026-10-15",
+      "valid_until": null,
+      "confidence_policy": "Le nom ou le domaine peut identifier le service ; une référence seule ne suffit pas.",
+      "human_review_required": true,
+      "notes": "Les commandes Marketplace peuvent relever du vendeur partenaire ; ne pas attribuer automatiquement la responsabilité à Fnac."
+    }
+  ]
+}
