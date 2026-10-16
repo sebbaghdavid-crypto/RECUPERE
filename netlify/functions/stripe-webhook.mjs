@@ -2,7 +2,7 @@ import { getStore } from "@netlify/blobs";
 import crypto from "node:crypto";
 import { sendCustomerEmail } from "./notifications.mjs";
 import { updateCase } from "./case-store.mjs";
-import {checkoutSessionDisposition} from "./stripe-webhook-utils.mjs";
+import {checkoutSessionDisposition,isStripeTestEvent} from "./stripe-webhook-utils.mjs";
 const store=getStore({name:"recupere-cases",region:"eu-central-1"});
 const WEBHOOK_SECRET=process.env.STRIPE_WEBHOOK_SECRET;
 function response(body,status=200){return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}})}
@@ -38,7 +38,9 @@ export default async req=>{
  try{
   if(req.method!=="POST")return response({error:"Méthode non supportée."},405);
   const rawBody=await req.text();if(!verifySignature(rawBody,req.headers.get("stripe-signature")))return response({error:"Signature Stripe invalide."},400);
-  const event=JSON.parse(rawBody),eventId=String(event.id||"");
+  const event=JSON.parse(rawBody);
+  if(!isStripeTestEvent(event))return response({error:"Événement Stripe hors mode test refusé."},400);
+  const eventId=String(event.id||"");
   const session=event.data?.object,token=session?.metadata?.case_token;
   if(!token)return response({received:true});
   if(!await claimEvent(eventId))return response({received:true,duplicate:true});
