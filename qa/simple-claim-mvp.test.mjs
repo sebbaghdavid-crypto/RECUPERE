@@ -18,7 +18,7 @@ test("simple claim MVP generates a draft locally and offers copy/download", () =
   assert.match(html, /navigator\.clipboard\.writeText\(letter\.value\)/);
   assert.match(html, /letter\.focus\(\);letter\.select\(\)/);
   assert.match(html, /Sélectionnez le texte puis copiez-le/);
-  assert.match(html, /Courrier copié\\./);
+  assert.ok(html.includes("Courrier copié."));
   assert.match(html, /id="copy"[^>]*>Copier le courrier/);
   assert.match(html, /id="download"[^>]*>Télécharger en \.txt/);
   assert.match(html, /new Blob\(\[letter\.value\]/);
