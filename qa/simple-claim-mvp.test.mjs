@@ -43,4 +43,6 @@ test("generated letters use corrected, category-specific French wording", () => 
   assert.match(html, /billing:"Je vous contacte afin de contester une facturation\."/);
   assert.doesNotMatch(html, /Je vous contacte au sujet de \+labels\[category\]/);
   assert.match(html, /Voici les faits tels que je les ai constatés/);
+  assert.match(html, /details\.localeCompare\(opening, "fr", \{sensitivity:"base"\}\)===0/);
+  assert.match(html, /Votre description reprend la phrase d’introduction/);
 });
