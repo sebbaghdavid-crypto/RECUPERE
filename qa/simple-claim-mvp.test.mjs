@@ -33,3 +33,14 @@ test("simple claim MVP sets reasonable input length and amount limits", () => {
   assert.match(html, /name="details" maxlength="3000"/);
   assert.match(html, /name="amount" type="number" min="0" max="10000000"/);
 });
+
+test("generated letters use corrected, category-specific French wording", () => {
+  assert.match(html, /const subjects=\{refund:"Demande de remboursement non reçu"/);
+  assert.match(html, /refund:"Je vous contacte au sujet d’un remboursement que je n’ai pas encore reçu\."/);
+  assert.match(html, /delivery:"Je vous contacte au sujet d’une commande ou d’un colis qui ne m’a pas été livré\."/);
+  assert.match(html, /defect:"Je vous contacte au sujet d’un produit défectueux ou d’une question relative à la garantie\."/);
+  assert.match(html, /transport:"Je vous contacte au sujet d’un retard ou d’une annulation de transport\."/);
+  assert.match(html, /billing:"Je vous contacte afin de contester une facturation\."/);
+  assert.doesNotMatch(html, /Je vous contacte au sujet de \+labels\[category\]/);
+  assert.match(html, /Voici les faits tels que je les ai constatés/);
+});
