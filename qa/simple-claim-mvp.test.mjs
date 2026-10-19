@@ -46,7 +46,8 @@ test("generated letters use corrected, category-specific French wording", () => 
   assert.match(html, /details\.localeCompare\(opening, "fr", \{sensitivity:"base"\}\)===0/);
   assert.match(html, /Votre description reprend la phrase d’introduction/);
   assert.match(html, /const refundAfterReturn=category==="refund"/);
-  assert.match(html, /procéder au remboursement du montant indiqué ci-dessus à la suite du retour de ma commande/);
+  assert.match(html, /Mon colis ayant été renvoyé, je reste dans l’attente du remboursement du montant indiqué ci-dessus/);
+  assert.match(html, /vérifier la bonne réception et la prise en compte du retour/);
   assert.match(html, /date prévue du remboursement/);
   assert.match(html, /const request=category==="refund"/);
 });
