@@ -59,7 +59,7 @@ form.addEventListener("submit",e=>{
  letter.value=text;placeholder.classList.add("hidden");letter.classList.remove("hidden");actions.classList.remove("hidden");status.textContent="Courrier préparé dans votre navigateur. Vérifiez chaque information avant de l’utiliser.";
 });
 document.getElementById("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(letter.value);status.textContent="Courrier copié."; }catch{letter.focus();letter.select();status.textContent="Sélectionnez le texte puis copiez-le avec Ctrl+C (ou ⌘C sur Mac).";}});
-document.getElementById("download").addEventListener("click",()=>{const blob=new Blob([letter.value],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="reclamation-recuperе.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);status.textContent="Téléchargement lancé.";});
+document.getElementById("download").addEventListener("click",()=>{const blob=new Blob([letter.value],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="reclamation-recupere.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);status.textContent="Téléchargement lancé.";});
 })();
 </script>
 </body>
