@@ -1,4 +1,4 @@
-const BASE_URL=process.env.RECUPERE_BASE_URL||"https://jade-pegasus-f6e204.netlify.app";
+const BASE_URL=(process.env.RECUPERE_BASE_URL||process.env.DEPLOY_PRIME_URL||process.env.URL||"https://jade-pegasus-f6e204.netlify.app").replace(/\/$/,"");
 export async function sendCustomerEmail({to,name,subject,title,body,caseNumber,idempotencyKey}) {
  const key=process.env.RESEND_API_KEY,from=process.env.RESEND_FROM;
  if(!key||!from||!to)return {sent:false,reason:"email_not_configured"};
