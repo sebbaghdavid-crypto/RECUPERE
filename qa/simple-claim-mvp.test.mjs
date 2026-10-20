@@ -117,6 +117,23 @@ test("technical test-case path requires admin authorization and never sends cust
   assert.match(testBranch, /Aucune demande réelle, aucun e-mail envoyé, aucun paiement déclenché/);
 });
 
+test("test email action is admin-only, restricted to the configured test inbox, and isolated from customer cases", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  const start = api.indexOf('if (body.action === "send_test_email")');
+  const end = api.indexOf('if (body.action === "prepare_claim")', start);
+  assert.ok(start >= 0 && end > start, "expected isolated test email action");
+  const branch = api.slice(start, end);
+  assert.match(branch, /allowAdminRequest\(adminIp\)/);
+  assert.match(branch, /if \(!adminOk\(req\)\)/);
+  assert.match(branch, /RECUPERE_TEST_EMAIL/);
+  assert.match(branch, /testStore\.get/);
+  assert.match(branch, /testStore\.setJSON/);
+  assert.match(branch, /customerStoreTouched: false/);
+  assert.match(branch, /inboxReceiptVerified: false/);
+  assert.match(branch, /supplierSent: false/);
+  assert.doesNotMatch(branch, /indexCase\(|store\.setJSON\(|action === "status"/);
+});
+
 test("case creation stores the dossier before email and returns email status without exposing access token", async () => {
   const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
   const storeAt = api.indexOf("await store.setJSON(`case/\u0024{token}`, item);");
