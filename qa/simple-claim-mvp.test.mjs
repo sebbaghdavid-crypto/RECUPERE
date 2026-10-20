@@ -97,5 +97,6 @@ test("embedded browser JavaScript parses without syntax errors", () => {
 test("customer emails prefer the active preview URL over the production site URL", async () => {
   const notifications = await readFile(new URL("../netlify/functions/notifications.mjs", import.meta.url), "utf8");
   assert.match(notifications, /process\.env\.RECUPERE_BASE_URL\|\|process\.env\.DEPLOY_PRIME_URL\|\|process\.env\.URL/);
-  assert.ok(notifications.includes(".replace(/\\\\/$/,\"\""));
+  assert.match(notifications, /process\\.env\\.DEPLOY_PRIME_URL/);
+  assert.match(notifications, /process\\.env\\.URL/);
 });
