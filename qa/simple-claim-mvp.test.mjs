@@ -115,7 +115,7 @@ test("Netlify isolated test runner is pinned to the PR preview and requires expl
   assert.ok(runner.includes('"verify_test"'));
   assert.ok(runner.includes('"send_test_email"'));
   assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
-  assert.ok(runbook.includes("la réception réelle"));
+  assert.ok(runbook.includes("Une acceptation du prestataire n'est pas une preuve de réception."));
 });
 
 test("technical test-case path requires admin authorization and never sends customer email", async () => {
