@@ -75,6 +75,10 @@ test("production publish directory is built from an explicit static allowlist", 
   const headers = await readFile(join(root, "dist/_headers"), "utf8");
   assert.match(headers, /X-Content-Type-Options: nosniff/);
   assert.match(headers, /X-Frame-Options: DENY/);
+
+  const simple = await readFile(join(root, "dist/simple/index.html"), "utf8");
+  assert.match(simple, /<html lang="fr">/);
+  assert.match(simple, /id="claim-form"/, "the published simple route must contain the claim form");
 });
 
 test("Netlify API routes remain explicitly wired to their intended functions", async () => {
