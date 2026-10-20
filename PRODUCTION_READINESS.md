@@ -2,7 +2,24 @@
 
 **Règle :** ne pas activer la production commerciale tant que tous les contrôles bloquants ci-dessous ne sont pas validés. Les contrôles GitHub ne remplacent pas les tests dans le navigateur ni les vérifications des comptes fournisseurs.
 
-## 1. Code et déploiement
+## État de l'audit — 15 octobre 2026 (branche de travail, non fusionnée)
+
+- [x] La PR #18 restreint la publication statique à `dist/` et ajoute des en-têtes de sécurité de base ; CI GitHub réussi sur le commit `41137c5`.
+- [x] Le contrôle Netlify signale la prévisualisation prête, mais les tests navigateur sont interceptés par la protection d'accès Netlify (« This site is private »). Les routes API et en-têtes HTTP n'ont donc pas été vérifiés de bout en bout.
+- [x] L'endpoint `/api/cashback` vérifie désormais `RECUPERE_CASHBACK_ENABLED` avant de répondre aux demandes ; désactivé par défaut et couvert par un test de régression.
+- [ ] Obtenir un accès autorisé à la prévisualisation ou une méthode de test approuvée, puis vérifier les réponses API, les en-têtes et les parcours utilisateur.
+- [ ] Ne pas fusionner la PR ni modifier les contrôles d'accès Netlify avant validation fonctionnelle et décision explicite sur l'accès pilote.
+
+## 1. Moteur IA d'identification fournisseur — spécification ajoutée le 15 octobre 2026
+- [x] Définir le parcours d'identification à partir du numéro de commande/facture et d'indices complémentaires dans AI_PROVIDER_ROUTING_SPEC.md.
+- [x] Définir les sources de référence initiales : sites officiels fournisseurs, API Recherche d'Entreprises, Annuaire des Entreprises, Sirene/Insee et Service-Public.
+- [x] Poser des garde-fous : sources datées, incertitude explicite, pas de devinette à partir d'un numéro seul, confirmation utilisateur avant tout envoi.
+- [ ] Construire le référentiel initial de fournisseurs/démarches avec URLs officielles et dates de vérification.
+- [ ] Implémenter puis tester l'extraction structurée et le classement déterministe avant l'ajout d'une IA générative.
+- [ ] Évaluer les faux positifs et la précision sur un jeu de test contrôlé.
+- [ ] Réactiver l'analyse de pièces uniquement après mise en place et audit d'un stockage privé, des permissions et de la suppression.
+
+## 2. Code et déploiement
 - [x] Les corrections du formulaire et du registre cashback sont intégrées à `main` via les PR #1 et #2.
 - [x] Les contrôles GitHub Actions ont réussi sur le commit intégré via les workflows QA récents ; relancer après toute modification du code.
 - [x] `package-lock.json` npm v3 est présent sur `main` et `npm ci --ignore-scripts --no-audit --no-fund` a réussi sur le commit intégré via la PR #5.
@@ -16,7 +33,7 @@
 - [ ] Aucun dossier de test ni secret n'est inclus dans le dépôt ou affiché publiquement.
 - [ ] Une procédure de retour à la version précédente est connue et testée.
 
-## 2. Configuration Netlify — ne jamais partager les valeurs secrètes
+## 3. Configuration Netlify — ne jamais partager les valeurs secrètes
 Vérifier dans les paramètres Netlify que les variables suivantes existent dans le contexte de production, sans copier leurs valeurs dans GitHub ni dans un chat :
 - [ ] `RECUPERE_ADMIN_KEY` — clé forte et unique.
 - [ ] `RECUPERE_PAYMENTS_ENABLED` — absent ou `false` par défaut ; ne mettre `true` que pour un test approuvé.
@@ -28,7 +45,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Variables de stockage Netlify Blobs et région compatibles avec l'environnement de production.
 - [ ] Les variables de test ne sont pas mélangées avec celles de production.
 
-## 3. Tests manuels obligatoires — sans paiement réel
+## 4. Tests manuels obligatoires — sans paiement réel
 
 **Périmètre actuel :** aucune dépense, aucune facturation, aucun paiement réel et aucun cashback public. Ne pas activer `RECUPERE_PAYMENTS_ENABLED`, `RECUPERE_CASHBACK_ENABLED` ou `RECUPERE_CASHBACK_SYNC_ENABLED` pour accélérer le lancement.
 - [ ] Vérifier que l'API refuse la création d'un dossier si le consentement explicite n'est pas fourni.
@@ -47,7 +64,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Vérifier les erreurs d'e-mail et la reprise sans doublon.
 - [ ] Tester sur mobile et sur les navigateurs principaux.
 
-## 4. Sécurité, données et exploitation
+## 5. Sécurité, données et exploitation
 - [ ] Les secrets ne sont pas dans le code, les journaux, les URL ni les réponses API.
 - [ ] Les données personnelles et justificatifs ont des règles de conservation, d'accès, de suppression et de sauvegarde documentées.
 - [ ] Les sauvegardes Netlify Blobs et la procédure de restauration ont été vérifiées.
@@ -55,7 +72,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Les limites de débit et protections contre les soumissions abusives sont vérifiées.
 - [ ] Les dossiers de test sont identifiés et ne sont pas présentés comme des dossiers clients.
 
-## 5. Informations légales et promesse commerciale
+## 6. Informations légales et promesse commerciale
 - [ ] Mentions légales complètes : responsable, coordonnées, forme juridique/identité pertinente, hébergeur et contact.
 - [ ] Politique de confidentialité conforme au traitement réel : finalités, base légale, destinataires, durées, droits et contact.
 - [ ] CGV/conditions de service et politique de remboursement adaptées à la prestation réellement fournie.
@@ -65,7 +82,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Le parcours de réclamation et le support client ont un responsable et un délai de réponse réalistes.
 - [ ] Le texte légal a été vérifié par une personne compétente ; aucun nom, SIRET, adresse ou statut d'entreprise n'a été inventé.
 
-## 6. Cashback — désactivé pour le lancement initial
+## 7. Cashback — désactivé pour le lancement initial
 - [ ] La page publique indique que le cashback est en préparation.
 - [ ] Le webhook AWIN reste désactivé tant qu'une authentification compatible n'est pas validée.
 - [ ] Capitis est testé avec les vraies variables et son schéma d'API confirmé.
@@ -73,7 +90,7 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 - [ ] Aucun versement client n'est promis avant implémentation et audit du processus de paiement.
 - [ ] Le lancement du service principal ne dépend pas d'une intégration cashback non validée.
 
-## 7. Pilote limité
+## 8. Pilote limité
 - [ ] Commencer avec 10 utilisateurs volontaires, avec information transparente sur le caractère pilote.
 - [ ] Mesurer : dossiers commencés/terminés, erreurs, délais de traitement, taux d'e-mails reçus, demandes de support et valeur réellement apportée.
 - [ ] Examiner manuellement chaque dossier avant toute affirmation d'éligibilité ou envoi de réclamation.
