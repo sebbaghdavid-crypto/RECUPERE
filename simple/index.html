@@ -37,6 +37,8 @@ h1{font-size:clamp(34px,5vw,52px);line-height:1.05;letter-spacing:-.04em;margin:
 <div id="placeholder" class="output empty">Votre courrier apparaîtra ici après avoir rempli le formulaire.</div>
 <textarea id="letter" class="output hidden" aria-label="Courrier de réclamation généré" readonly></textarea>
 <div id="actions" class="actions hidden"><button id="copy" class="btn" type="button">Copier le courrier</button><button id="download" class="btn secondary" type="button">Télécharger en .txt</button></div>
+<div id="next-step-wrap" class="actions hidden"><a id="next-step" class="btn" href="#" target="_blank" rel="noopener noreferrer">Poursuivre ma demande de remboursement →</a></div>
+<p id="next-step-note" class="sub hidden">Ce lien ouvre la procédure officielle de l’organisme dans un nouvel onglet. Vous devrez finaliser et envoyer votre demande vous-même. RÉCUPÈRE ne transmet pas le courrier automatiquement.</p>
 <div id="status" class="status" role="status" aria-live="polite"></div>
 <div class="note"><strong>À savoir :</strong> ce modèle n’est pas un avis juridique et ne garantit pas un remboursement. Vérifiez les délais, les justificatifs demandés et le canal officiel de l’organisme. Aucun courrier n’est envoyé automatiquement.</div>
 </section>
@@ -45,7 +47,7 @@ h1{font-size:clamp(34px,5vw,52px);line-height:1.05;letter-spacing:-.04em;margin:
 </main>
 <script>
 (()=>{
-const form=document.getElementById("claim-form"),placeholder=document.getElementById("placeholder"),letter=document.getElementById("letter"),actions=document.getElementById("actions"),status=document.getElementById("status");
+const form=document.getElementById("claim-form"),placeholder=document.getElementById("placeholder"),letter=document.getElementById("letter"),actions=document.getElementById("actions"),status=document.getElementById("status"),nextStepWrap=document.getElementById("next-step-wrap"),nextStep=document.getElementById("next-step"),nextStepNote=document.getElementById("next-step-note");
 const subjects={refund:"Demande de remboursement non reçu",delivery:"Réclamation pour commande ou colis non livré",defect:"Réclamation concernant un produit défectueux ou la garantie",transport:"Réclamation concernant un retard ou une annulation de transport",billing:"Contestation d’une facturation",other:"Demande d’examen de ma situation"};
 const openings={refund:"Je vous contacte au sujet d’un remboursement que je n’ai pas encore reçu.",delivery:"Je vous contacte au sujet d’une commande ou d’un colis qui ne m’a pas été livré.",defect:"Je vous contacte au sujet d’un produit défectueux ou d’une question relative à la garantie.",transport:"Je vous contacte au sujet d’un retard ou d’une annulation de transport.",billing:"Je vous contacte afin de contester une facturation.",other:"Je vous contacte au sujet de la situation décrite ci-dessous."};
 const clean=v=>String(v||"").trim();
@@ -63,7 +65,9 @@ form.addEventListener("submit",e=>{
  const text=(name?name+"\n":"")+"À l’attention du service clientèle / réclamations de "+company+"\n\nObjet : "+subject+"\nRéférence : "+(reference||"[référence à préciser]")+"\nDate des faits : "+dateText+"\nMontant concerné : "+amountText+"\n\nMadame, Monsieur,\n\n"+(openings[category]||openings.other)+"\n\nVoici les faits tels que je les ai constatés :\n"+details+"\n\n"+request+"\n\nJe reste à votre disposition pour tout complément utile.\n\nCordialement,\n"+(name||"[votre nom]");
  letter.value=text;placeholder.classList.add("hidden");letter.classList.remove("hidden");actions.classList.remove("hidden");status.textContent="Courrier préparé dans votre navigateur. Vérifiez chaque information avant de l’utiliser.";
 });
-document.getElementById("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(letter.value);status.textContent="Courrier copié."; }catch{letter.focus();letter.select();status.textContent="Sélectionnez le texte puis copiez-le avec Ctrl+C (ou ⌘C sur Mac).";}});
+document.getElementById("copy").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(letter.value);status.textContent="Courrier copié. Vous pouvez poursuivre votre demande.";showNextStep();}catch{letter.focus();letter.select();status.textContent="Texte sélectionné : copiez-le avec Ctrl+C (ou ⌘C sur Mac), puis poursuivez votre demande.";showNextStep();}});
+function showNextStep(){if(clean(document.getElementById("category").value)!=="refund")return;const company=clean(document.getElementById("company").value).toLocaleLowerCase("fr");let url="";if(/\bsncf\b|sncf connect/.test(company))url="https://www.sncf-connect.com/aide/contact";else if(/\bfnac\b/.test(company))url="https://www.fnac.com/aide?thematic=les-retours-and-remboursements";if(url){nextStep.href=url;nextStepWrap.classList.remove("hidden");nextStepNote.classList.remove("hidden");}else{nextStepWrap.classList.add("hidden");nextStepNote.classList.add("hidden");status.textContent+=" Organisme non reconnu automatiquement : ouvrez son site officiel et recherchez sa rubrique réclamations/remboursements.";}}
+
 document.getElementById("download").addEventListener("click",()=>{const blob=new Blob([letter.value],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="reclamation-recupere.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);status.textContent="Téléchargement lancé.";});
 })();
 </script>
