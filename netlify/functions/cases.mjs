@@ -102,6 +102,42 @@ export default async (req) => {
         return response({ ok: true, persisted: true, emailSent: false, supplierSent: false, case: item });
       }
 
+      if (body.action === "send_test_email") {
+        const adminIp = ipFor(req);
+        if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
+        if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
+        const caseNumber = clean(body.caseNumber, 40);
+        if (!/^TEST-\\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
+        const item = await testStore.get(`test/${caseNumber}`, { type: "json", consistency: "strong" });
+        if (!item || item.isTest !== true) return response({ error: "Dossier test introuvable." }, 404);
+        const recipient = String(process.env.RECUPERE_TEST_EMAIL || "").trim().toLowerCase();
+        if (!recipient || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient) || recipient.endsWith(".invalid")) {
+          return response({ error: "Adresse de test non configurée. Aucun e-mail envoyé." }, 503);
+        }
+        const emailResult = await sendCustomerEmail({
+          to: recipient,
+          name: "Test RÉCUPÈRE",
+          caseNumber,
+          subject: `[TEST RÉCUPÈRE] Confirmation technique ${caseNumber}`,
+          title: "Test de confirmation e-mail",
+          body: `Message technique envoyé uniquement à l'adresse de test configurée. Dossier ${caseNumber}. Aucun dossier client ni fournisseur n'a été contacté.`,
+          idempotencyKey: `test-email|${caseNumber}`
+        });
+        const now = new Date().toISOString();
+        const updated = {
+          ...item,
+          updatedAt: now,
+          emailTest: { attemptedAt: now, recipient, sent: Boolean(emailResult.sent), reason: emailResult.reason || null, providerId: emailResult.id || null },
+          events: [...(Array.isArray(item.events) ? item.events : []), {
+            at: now,
+            type: emailResult.sent ? "TEST_EMAIL_ACCEPTED" : "TEST_EMAIL_FAILED",
+            note: emailResult.sent ? "Le fournisseur d'e-mail a accepté le message de test ; la réception dans la boîte reste à vérifier." : "Échec de l'envoi du message de test."
+          }]
+        };
+        await testStore.setJSON(`test/${caseNumber}`, updated);
+        return response({ ok: Boolean(emailResult.sent), caseNumber, emailSent: Boolean(emailResult.sent), inboxReceiptVerified: false, supplierSent: false, customerStoreTouched: false, reason: emailResult.reason || null });
+      }
+
       if (body.action === "prepare_claim") {
         if (!(await allowAdminRequest(ipFor(req)))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
