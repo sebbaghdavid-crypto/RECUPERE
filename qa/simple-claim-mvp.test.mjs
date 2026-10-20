@@ -218,3 +218,13 @@ test("public launch checklist remains explicit about manual blockers and unpubli
   assert.match(legal, /document de travail uniquement/i);
   assert.match(legal, /Ne pas mettre le site en production commerciale avec des champs manquants/i);
 });
+
+
+test("production readiness file records the latest read-only smoke-check facts and does not claim live tests passed", async () => {
+  const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
+  assert.ok(runbook.includes("GET `/simple/` returned 404 on production"));
+  assert.ok(runbook.includes("No POST request was issued"));
+  assert.ok(runbook.includes("live storage/email test remains blocked"));
+  assert.ok(runbook.includes("legal pages are incomplete"));
+  assert.ok(runbook.includes("Do not mark the service as production-ready"));
+});
