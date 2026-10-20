@@ -59,3 +59,7 @@ Le script crée un nouveau dossier technique et demande au serveur d'envoyer un 
 - Le résultat suggère une écriture dans le magasin client.
 
 Ne jamais contourner l'accès de prévisualisation, fusionner une autre PR, déployer en production ou payer pour débloquer ce protocole.
+
+## Diagnostic du 404 sur /simple (20 octobre 2026)
+
+Le contrôle en lecture seule de la production a donné 404 sur les trois URL suivantes : `/simple`, `/simple/` et `/simple/index.html`. Comme le fichier source `simple/index.html` existe dans le dépôt et que les redirections sont présentes dans `netlify.toml`, ce résultat indique que le fichier n'est pas présent dans l'artefact actuellement servi par Netlify (déploiement obsolète ou répertoire publié différent), plutôt qu'un simple problème de barre oblique dans l'URL. La correction configure un build dédié vers `dist/`, copie explicitement `simple/index.html` dans cet artefact et garde les deux redirections. Après un déploiement gratuit réussi, vérifier dans cet ordre : `/simple/index.html`, `/simple`, `/simple/`. Tant que le déploiement n'a pas eu lieu, ne pas annoncer le 404 comme corrigé.
