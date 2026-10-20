@@ -5,13 +5,13 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const output = join(root, "dist");
 
-// Publish only the intended browser-facing pages. Server functions remain in
+// Publish only approved browser-facing pages. Server functions stay in
 // Netlify's separately configured netlify/functions directory.
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await copyFile(join(root, "index.html"), join(output, "index.html"));
 
-for (const directory of ["admin", "portal", "cashback"]) {
+for (const directory of ["admin", "portal", "cashback", "simple"]) {
   await cp(join(root, directory), join(output, directory), { recursive: true });
 }
 
