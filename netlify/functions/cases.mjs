@@ -8,6 +8,7 @@ import { initialCaseStatus } from "./case-state.mjs";
 import { hasConsent } from "./consent.mjs";
 
 const store = getStore({ name: "recupere-cases", region: "eu-central-1" });
+const testStore = getStore({ name: "recupere-cases-test", region: "eu-central-1" });
 const jsonHeaders = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
 
 function response(body, status=200) {
@@ -77,20 +78,64 @@ export default async (req) => {
         if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const now = new Date().toISOString();
-        const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().slice(0, 8);
         const caseNumber = `TEST-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
         const item = {
-          caseNumber, accessToken: token, name: "TEST RÉCUPÈRE", email: "test-interne@example.invalid",
+          caseNumber, name: "TEST RÉCUPÈRE", email: "test-interne@example.invalid",
           category: "TEST TECHNIQUE", amount: "0", company: "Environnement de test",
-          reference: "TEST-SANS-EMAIL", description: "Dossier technique créé depuis l’administration. Aucune demande réelle, aucun e-mail envoyé, aucun paiement déclenché.",
+          reference: "TEST-SANS-EMAIL", description: "Dossier technique isolé. Aucune demande réelle, aucun e-mail envoyé, aucun paiement déclenché.",
           status: "NEW", opportunityLevel: "PENDING", estimatedRecovery: null, confidence: null,
           createdAt: now, updatedAt: now, isTest: true,
-          events: [{ at: now, type: "TEST_CASE_CREATED", note: "Créé par l’administrateur ; aucun e-mail envoyé." }]
+          events: [{ at: now, type: "TEST_CASE_CREATED", note: "Stocké dans le magasin de test isolé ; aucun e-mail envoyé." }]
         };
-        await store.setJSON(`case/${token}`, item);
-        await indexCase(item);
-        const { accessToken, ...safe } = item;
-        return response({ ok: true, case: safe }, 201);
+        await testStore.setJSON(`test/${caseNumber}`, item, { onlyIfNew: true });
+        return response({ ok: true, case: item, store: "recupere-cases-test", emailSent: false }, 201);
+      }
+
+      if (body.action === "verify_test") {
+        const adminIp = ipFor(req);
+        if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
+        if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
+        const caseNumber = clean(body.caseNumber, 40);
+        if (!/^TEST-\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
+        const item = await testStore.get(`test/${caseNumber}`, { type: "json", consistency: "strong" });
+        if (!item) return response({ ok: false, persisted: false, caseNumber }, 404);
+        return response({ ok: true, persisted: true, emailSent: false, supplierSent: false, case: item });
+      }
+
+      if (body.action === "send_test_email") {
+        const adminIp = ipFor(req);
+        if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
+        if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
+        const caseNumber = clean(body.caseNumber, 40);
+        if (!/^TEST-\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
+        const item = await testStore.get(`test/${caseNumber}`, { type: "json", consistency: "strong" });
+        if (!item || item.isTest !== true) return response({ error: "Dossier test introuvable." }, 404);
+        const recipient = String(process.env.RECUPERE_TEST_EMAIL || "").trim().toLowerCase();
+        if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient) || recipient.endsWith(".invalid")) {
+          return response({ error: "Adresse de test non configurée. Aucun e-mail envoyé." }, 503);
+        }
+        const emailResult = await sendCustomerEmail({
+          to: recipient,
+          name: "Test RÉCUPÈRE",
+          caseNumber,
+          subject: `[TEST RÉCUPÈRE] Confirmation technique ${caseNumber}`,
+          title: "Test de confirmation e-mail",
+          body: `Message technique envoyé uniquement à l'adresse de test configurée. Dossier ${caseNumber}. Aucun dossier client ni fournisseur n'a été contacté.`,
+          idempotencyKey: `test-email|${caseNumber}`
+        });
+        const now = new Date().toISOString();
+        const updated = {
+          ...item,
+          updatedAt: now,
+          emailTest: { attemptedAt: now, recipient, sent: Boolean(emailResult.sent), reason: emailResult.reason || null, providerId: emailResult.id || null },
+          events: [...(Array.isArray(item.events) ? item.events : []), {
+            at: now,
+            type: emailResult.sent ? "TEST_EMAIL_ACCEPTED" : "TEST_EMAIL_FAILED",
+            note: emailResult.sent ? "Le fournisseur d'e-mail a accepté le message de test ; la réception dans la boîte reste à vérifier." : "Échec de l'envoi du message de test."
+          }]
+        };
+        await testStore.setJSON(`test/${caseNumber}`, updated);
+        return response({ ok: Boolean(emailResult.sent), caseNumber, emailSent: Boolean(emailResult.sent), inboxReceiptVerified: false, supplierSent: false, customerStoreTouched: false, reason: emailResult.reason || null });
       }
 
       if (body.action === "prepare_claim") {
@@ -158,6 +203,7 @@ export default async (req) => {
         company: clean(body.company, 180),
         reference: clean(body.reference, 180),
         description: clean(body.description, 6000),
+        claimDraft: clean(body.claimDraft, 8000),
         status: "NEW",
         opportunityLevel: "PENDING",
         estimatedRecovery: null,
