@@ -100,3 +100,40 @@ test("customer emails prefer the active preview URL over the production site URL
   assert.ok(notifications.includes("process.env.DEPLOY_PRIME_URL"));
   assert.ok(notifications.includes("process.env.URL"));
 });
+
+
+test("technical test-case path requires admin authorization and never sends customer email", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  const start = api.indexOf('if (body.action === "create_test")');
+  const end = api.indexOf('if (body.action === "prepare_claim")', start);
+  assert.ok(start >= 0 && end > start, "expected an isolated create_test branch");
+  const testBranch = api.slice(start, end);
+  assert.match(testBranch, /allowAdminRequest\(adminIp\)/);
+  assert.match(testBranch, /if \(!adminOk\(req\)\)/);
+  assert.match(testBranch, /test-interne@example\.invalid/);
+  assert.match(testBranch, /isTest: true/);
+  assert.doesNotMatch(testBranch, /sendCustomerEmail\(/);
+  assert.match(testBranch, /Aucune demande réelle, aucun e-mail envoyé, aucun paiement déclenché/);
+});
+
+test("case creation stores the dossier before email and returns email status without exposing access token", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  const storeAt = api.indexOf("await store.setJSON(`case/\u0024{token}`, item);");
+  const emailAt = api.indexOf("const emailResult = await sendCustomerEmail", storeAt);
+  const responseAt = api.indexOf("return response({ ok: true, caseNumber, status: item.status", emailAt);
+  assert.ok(storeAt >= 0 && emailAt > storeAt && responseAt > emailAt, "expected storage before email and final receipt");
+  assert.match(api, /emailSent: emailResult\.sent/);
+  assert.match(api, /CUSTOMER_EMAIL_FAILED/);
+  assert.match(api, /const \{ accessToken, \.\.\.safe \} = item/);
+  assert.match(api, /return response\(safe\)/);
+});
+
+test("customer submission requires consent and applies server-side rate limiting before storage", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  const consentAt = api.indexOf("if (!hasConsent(body.consent))");
+  const rateLimitAt = api.indexOf("allowCaseCreate(email, ip)", consentAt);
+  const storeAt = api.indexOf("await store.setJSON(`case/\u0024{token}`, item);", rateLimitAt);
+  assert.ok(consentAt >= 0 && rateLimitAt > consentAt && storeAt > rateLimitAt);
+  assert.match(api, /if \(!name \|\| !email \|\| !email\.includes\("@"\)\)/);
+  assert.match(api, /if \(!hasConsent\(body\.consent\)\) return response\(\{ error:/);
+});
