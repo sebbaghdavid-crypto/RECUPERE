@@ -107,11 +107,11 @@ export default async (req) => {
         if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const caseNumber = clean(body.caseNumber, 40);
-        if (!/^TEST-\\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
+        if (!/^TEST-\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
         const item = await testStore.get(`test/${caseNumber}`, { type: "json", consistency: "strong" });
         if (!item || item.isTest !== true) return response({ error: "Dossier test introuvable." }, 404);
         const recipient = String(process.env.RECUPERE_TEST_EMAIL || "").trim().toLowerCase();
-        if (!recipient || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient) || recipient.endsWith(".invalid")) {
+        if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient) || recipient.endsWith(".invalid")) {
           return response({ error: "Adresse de test non configurée. Aucun e-mail envoyé." }, 503);
         }
         const emailResult = await sendCustomerEmail({
