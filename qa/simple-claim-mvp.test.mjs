@@ -30,6 +30,10 @@ test("simple claim MVP generates a draft locally and offers copy/download", () =
   assert.match(html, /https:\/\/www\.fnac\.com\/aide\?thematic=les-retours-and-remboursements/);
   assert.match(html, /Vous devrez finaliser et envoyer votre demande vous-même/);
   assert.match(html, /id="download"[^>]*>Télécharger en \.txt/);
+  assert.match(html, /id="review-submit"[^>]*>Envoyer mon dossier en étude à RÉCUPÈRE/);
+  assert.match(html, /Cette version ne transmet pas encore de dossier à RÉCUPÈRE ni au fournisseur/);
+  assert.match(html, /dossier-reclamation-recupere\.txt/);
+  assert.match(html, /Aucun dossier n’a été transmis pour étude/);
   assert.match(html, /id="letter" class="output hidden" aria-label="Courrier de réclamation généré" spellcheck="true"><\/textarea>/);
   assert.doesNotMatch(html.match(/<textarea id="letter"[\s\S]*?<\/textarea>/)?.[0] || "", /\breadonly\b/);
   assert.match(html, /new Blob\(\[letter\.value\]/);
