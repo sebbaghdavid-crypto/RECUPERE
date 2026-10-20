@@ -4,6 +4,8 @@
 
 ## Objectif et garde-fous
 
+> Observation de contrôle : le site de production a retourné 404 pour `/simple/` après fusion, alors que l'aperçu de PR sert la page. Ne pas supposer que production est déployée à jour.
+
 Ce protocole valide la persistance du magasin technique, puis (sur décision explicite) l'envoi d'un seul e-mail de test. Il ne valide pas la production et ne doit jamais être exécuté sur le site de production.
 
 - Cible autorisée : aperçu de la PR #22 uniquement, et seulement si sa publication est prouvée correspondre au code testé.
