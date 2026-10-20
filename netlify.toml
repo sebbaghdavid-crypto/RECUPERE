@@ -5,3 +5,13 @@
 
 [build.processing]
   skip_processing = false
+
+[[redirects]]
+  from = "/simple"
+  to = "/simple/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/simple/"
+  to = "/simple/index.html"
+  status = 200
