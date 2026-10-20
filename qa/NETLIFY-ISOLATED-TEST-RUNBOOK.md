@@ -4,6 +4,8 @@
 
 ## Objectif et garde-fous
 
+> Observation de contrôle : le site de production a retourné 404 pour `/simple/` après fusion, alors que l'aperçu de PR sert la page. Ne pas supposer que production est déployée à jour.
+
 Ce protocole valide la persistance du magasin technique, puis (sur décision explicite) l'envoi d'un seul e-mail de test. Il ne valide pas la production et ne doit jamais être exécuté sur le site de production.
 
 - Cible autorisée : aperçu de la PR #22 uniquement, et seulement si sa publication est prouvée correspondre au code testé.
@@ -59,3 +61,20 @@ Le script crée un nouveau dossier technique et demande au serveur d'envoyer un 
 - Le résultat suggère une écriture dans le magasin client.
 
 Ne jamais contourner l'accès de prévisualisation, fusionner une autre PR, déployer en production ou payer pour débloquer ce protocole.
+
+
+## Post-merge verification log — 2026-10-20
+
+Read-only checks performed after PR #22 and PR #23 were merged:
+
+- `GET /` returned the public landing page.
+- `GET /api/cases` returned `{"service":"RECUPERE","status":"ok"}`.
+- `GET /portal/` returned the portal sign-in interface.
+- `GET /admin/` returned the admin sign-in interface without exposing any key.
+- `GET /simple/` returned 404 on production.
+- The historical PR preview for `/simple/` and `/api/cases` was readable, but that is not proof of production deployment.
+- No POST request was issued; no test record was created; no email or payment was sent.
+- The isolated runner needs `RECUPERE_ADMIN_KEY` from a secure environment. The agent cannot inspect Netlify environment secrets, so the live storage/email test remains blocked.
+- The automated workflow on commit `d5c78191a3304aa75cd61a21f0faf0557ccdc7c5` passed.
+
+Interpretation: read-only smoke checks show the landing page and core API are alive. Production is not complete because the new `/simple/` route is not published, legal pages are incomplete, and live Blob persistence / email inbox receipt are unverified. Do not mark the service as production-ready based only on QA automation.
