@@ -137,3 +137,29 @@ test("customer submission requires consent and applies server-side rate limiting
   assert.match(api, /if \(!name \|\| !email \|\| !email\.includes\("@"\)\)/);
   assert.match(api, /if \(!hasConsent\(body\.consent\)\) return response\(\{ error:/);
 });
+
+test("technical test dossiers use a separate store and do not enter customer indexing", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  assert.match(api, /name: "recupere-cases-test"/);
+  const start = api.indexOf('if (body.action === "create_test")');
+  const end = api.indexOf('if (body.action === "verify_test")', start);
+  assert.ok(start >= 0 && end > start);
+  const branch = api.slice(start, end);
+  assert.match(branch, /testStore\\.setJSON/);
+  assert.doesNotMatch(branch, /store\\.setJSON\\(|indexCase\\(|sendCustomerEmail\\(/);
+  assert.match(branch, /emailSent: false/);
+  assert.match(branch, /isTest: true/);
+});
+
+test("technical test persistence verification is admin-protected and confirms no email or supplier submission", async () => {
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  const start = api.indexOf('if (body.action === "verify_test")');
+  const end = api.indexOf('if (body.action === "prepare_claim")', start);
+  assert.ok(start >= 0 && end > start);
+  const branch = api.slice(start, end);
+  assert.match(branch, /allowAdminRequest\\(adminIp\\)/);
+  assert.match(branch, /adminOk\\(req\\)/);
+  assert.match(branch, /testStore\\.get/);
+  assert.match(branch, /persisted: true, emailSent: false, supplierSent: false/);
+  assert.match(branch, /TEST-\\\\d\\{4\\}/);
+});
