@@ -10,8 +10,10 @@
   from = "/simple"
   to = "/simple/index.html"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/simple/"
   to = "/simple/index.html"
   status = 200
+  force = true
