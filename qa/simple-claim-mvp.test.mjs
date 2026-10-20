@@ -9,13 +9,13 @@ test("simple claim MVP is a standalone French page with accessible form controls
   assert.match(html, /id="claim-form"/);
   assert.match(html, /id="company"[^>]*required/);
   assert.match(html, /id="category"[^>]*required/);
-  assert.match(html, /id="details"[^>]*required/);
+  assert.match(html, /id="details"[^>]*required/);\n  assert.match(html, /id="email" name="email" type="email"[^>]*required/);\n  assert.match(html, /id="consent" name="consent" type="checkbox"/);
   assert.match(html, /aria-live="polite"/);
 });
 
 test("simple claim MVP generates a draft locally and offers copy/download", () => {
   assert.match(html, /form\.addEventListener\("submit"/);
-  assert.match(html, /actions\.classList\.remove\("hidden"\);reviewSubmitWrap\.classList\.remove\("hidden"\);reviewSubmitNote\.classList\.remove\("hidden"\);status\.textContent="Courrier préparé dans votre navigateur\. Vérifiez chaque information avant de l’utiliser\.";showNextStep\(\);/);
+  assert.match(html, /actions\.classList\.remove\("hidden"\);reviewSubmitWrap\.classList\.remove\("hidden"\);reviewSubmitNote\.classList\.remove\("hidden"\);status\.textContent="Courrier préparé\. Vérifiez les informations, puis envoyez le dossier à RÉCUPÈRE si vous souhaitez une étude\.";showNextStep\(\);/);
   assert.match(html, /navigator\.clipboard\.writeText\(letter\.value\)/);
   assert.match(html, /letter\.focus\(\);letter\.select\(\)/);
   assert.match(html, /Texte sélectionné : copiez-le/);
