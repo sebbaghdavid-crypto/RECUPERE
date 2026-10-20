@@ -158,6 +158,7 @@ export default async (req) => {
         company: clean(body.company, 180),
         reference: clean(body.reference, 180),
         description: clean(body.description, 6000),
+        claimDraft: clean(body.claimDraft, 8000),
         status: "NEW",
         opportunityLevel: "PENDING",
         estimatedRecovery: null,
