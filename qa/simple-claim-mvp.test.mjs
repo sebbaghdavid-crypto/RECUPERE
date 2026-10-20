@@ -18,6 +18,7 @@ test("simple claim MVP is a standalone French page with accessible form controls
 
 test("simple claim MVP generates a draft locally and offers copy/download", () => {
   assert.match(html, /form\.addEventListener\("submit"/);
+  assert.match(html, /form\.addEventListener\("input",event=>\{if\(event\.target\?\.id===\"consent\"\)return;/, "changing consent must not invalidate the generated draft");
   assert.match(html, /actions\.classList\.remove\("hidden"\);reviewSubmitWrap\.classList\.remove\("hidden"\);reviewSubmitNote\.classList\.remove\("hidden"\);status\.textContent="Courrier préparé\. Vérifiez les informations, puis envoyez le dossier à RÉCUPÈRE si vous souhaitez une étude\.";showNextStep\(\);/);
   assert.match(html, /navigator\.clipboard\.writeText\(letter\.value\)/);
   assert.match(html, /letter\.focus\(\);letter\.select\(\)/);
