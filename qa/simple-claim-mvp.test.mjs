@@ -31,19 +31,23 @@ test("simple claim MVP generates a draft locally and offers copy/download", () =
   assert.match(html, /Vous devrez finaliser et envoyer votre demande vous-même/);
   assert.match(html, /id="download"[^>]*>Télécharger en \.txt/);
   assert.match(html, /id="review-submit"[^>]*>Envoyer mon dossier en étude à RÉCUPÈRE/);
-  assert.match(html, /Cette version ne transmet pas encore de dossier à RÉCUPÈRE ni au fournisseur/);
-  assert.match(html, /dossier-reclamation-recupere\.txt/);
-  assert.match(html, /Aucun dossier n’a été transmis pour étude/);
+  assert.match(html, /fetch\("\/api\/cases"/);
+  assert.match(html, /claimDraft:letter\.value/);
+  assert.match(html, /Dossier reçu par RÉCUPÈRE/);
+  assert.match(html, /La réclamation n’a pas été envoyée au fournisseur/);
+  assert.match(html, /Transmission du dossier en cours/);
   assert.match(html, /id="letter" class="output hidden" aria-label="Courrier de réclamation généré" spellcheck="true"><\/textarea>/);
   assert.doesNotMatch(html.match(/<textarea id="letter"[\s\S]*?<\/textarea>/)?.[0] || "", /\breadonly\b/);
   assert.match(html, /new Blob\(\[letter\.value\]/);
   assert.match(html, /Aucun courrier n’est envoyé automatiquement/);
 });
 
-test("simple claim MVP does not submit or persist user-provided form data", () => {
-  assert.doesNotMatch(html, /<form[^>]+action=/i);
-  assert.doesNotMatch(html, /fetch\s*\(/i);
-  assert.doesNotMatch(html, /XMLHttpRequest/);
+test("simple claim MVP submits only after explicit consent through the case API", () => {
+  assert.match(html, /fetch\("\/api\/cases"/);
+  assert.match(html, /consent:true/);
+  assert.match(html, /claimDraft:letter\.value/);
+  assert.match(html, /Dossier reçu par RÉCUPÈRE/);
+  assert.match(html, /La réclamation n’a pas été envoyée au fournisseur/);
   assert.doesNotMatch(html, /localStorage|sessionStorage|indexedDB/i);
   assert.doesNotMatch(html, /netlify\.functions|stripe|RESEND_API_KEY/i);
 });
@@ -70,4 +74,13 @@ test("generated letters use corrected, category-specific French wording", () => 
   assert.match(html, /vérifier la bonne réception et la prise en compte du retour/);
   assert.match(html, /date prévue du remboursement/);
   assert.match(html, /const request=category==="refund"/);
+});
+
+
+test("case API stores the generated draft and enforces consent and rate limits", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
+  assert.match(api, /claimDraft: clean\(body\.claimDraft, 8000\)/);
+  assert.match(api, /if \(!hasConsent\(body\.consent\)\)/);
+  assert.match(api, /allowCaseCreate\(email, ip\)/);
 });
