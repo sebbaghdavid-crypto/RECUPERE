@@ -203,7 +203,7 @@ test("technical test persistence verification is admin-protected and confirms no
 test("post-merge delivery check documents the expected production route and safety gate", async () => {
   const netlify = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
-  assert.match(netlify, /publish\\s*=\\s*[\"']dist[\"']/);
+  assert.match(netlify, /publish\s*=\s*["']dist["']/);
   assert.ok(runbook.includes("production a répondu 404 sur `/simple/`"));
   assert.ok(runbook.includes("BLOQUÉ pour exécution automatique sans opérateur"));
   assert.ok(runbook.includes("Aucun accès aux variables secrètes Netlify"));
