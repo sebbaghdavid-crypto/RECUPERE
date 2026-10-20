@@ -106,7 +106,7 @@ test("customer emails prefer the active preview URL over the production site URL
 test("technical test-case path requires admin authorization and never sends customer email", async () => {
   const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
   const start = api.indexOf('if (body.action === "create_test")');
-  const end = api.indexOf('if (body.action === "prepare_claim")', start);
+  const end = api.indexOf('if (body.action === "verify_test")', start);
   assert.ok(start >= 0 && end > start, "expected an isolated create_test branch");
   const testBranch = api.slice(start, end);
   assert.match(testBranch, /allowAdminRequest\(adminIp\)/);
