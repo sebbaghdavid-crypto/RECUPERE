@@ -9,7 +9,9 @@ test("simple claim MVP is a standalone French page with accessible form controls
   assert.match(html, /id="claim-form"/);
   assert.match(html, /id="company"[^>]*required/);
   assert.match(html, /id="category"[^>]*required/);
-  assert.match(html, /id="details"[^>]*required/);\n  assert.match(html, /id="email" name="email" type="email"[^>]*required/);\n  assert.match(html, /id="consent" name="consent" type="checkbox"/);
+  assert.match(html, /id="details"[^>]*required/);
+  assert.match(html, /id="email" name="email" type="email"[^>]*required/);
+  assert.match(html, /id="consent" name="consent" type="checkbox"/);
   assert.match(html, /aria-live="polite"/);
 });
 
