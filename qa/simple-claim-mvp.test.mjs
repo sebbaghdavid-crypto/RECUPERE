@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import vm from "node:vm";
 
 const html = await readFile(new URL("../simple/index.html", import.meta.url), "utf8");
 
@@ -85,4 +86,10 @@ test("case API stores the generated draft and enforces consent and rate limits",
   assert.match(api, /claimDraft: clean\(body\.claimDraft, 8000\)/);
   assert.match(api, /if \(!hasConsent\(body\.consent\)\)/);
   assert.match(api, /allowCaseCreate\(email, ip\)/);
+});
+
+test("embedded browser JavaScript parses without syntax errors", () => {
+  const match = html.match(/<script>([\\s\\S]*?)<\\/script>/);
+  assert.ok(match, "expected an inline script");
+  assert.doesNotThrow(() => new vm.Script(match[1]), "inline script must be valid JavaScript");
 });
