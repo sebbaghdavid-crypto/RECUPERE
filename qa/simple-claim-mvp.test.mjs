@@ -89,7 +89,7 @@ test("case API stores the generated draft and enforces consent and rate limits",
 });
 
 test("embedded browser JavaScript parses without syntax errors", () => {
-  const match = html.match(/<script>([\\s\\S]*?)<\\/script>/);
+  const match = html.match(/<script>([\s\S]*?)<\/script>/);
   assert.ok(match, "expected an inline script");
   assert.doesNotThrow(() => new vm.Script(match[1]), "inline script must be valid JavaScript");
 });
