@@ -198,3 +198,23 @@ test("technical test persistence verification is admin-protected and confirms no
   assert.ok(branch.includes("persisted: true, emailSent: false, supplierSent: false"));
   assert.ok(branch.includes("TEST-"));
 });
+
+
+test("post-merge delivery check documents the expected production route and safety gate", async () => {
+  const netlify = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
+  const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
+  assert.match(netlify, /publish\s*=\s*["']\.["']/);
+  assert.ok(runbook.includes("production a répondu 404 sur `/simple/`"));
+  assert.ok(runbook.includes("BLOQUÉ pour exécution automatique sans opérateur"));
+  assert.ok(runbook.includes("Aucun accès aux variables secrètes Netlify"));
+  assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
+});
+
+test("public launch checklist remains explicit about manual blockers and unpublished legal drafts", async () => {
+  const readiness = await readFile(new URL("../PRODUCTION_READINESS.md", import.meta.url), "utf8");
+  const legal = await readFile(new URL("../LEGAL_CONTENT_DRAFT.md", import.meta.url), "utf8");
+  assert.match(readiness, /Vérifier dans Netlify que le dernier commit de `main` est publié sur Production/);
+  assert.match(readiness, /Vérifier la réception d'e-mail/);
+  assert.match(legal, /document de travail uniquement/i);
+  assert.match(legal, /Ne pas mettre le site en production commerciale avec des champs manquants/i);
+});
