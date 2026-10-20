@@ -218,3 +218,13 @@ test("public launch checklist remains explicit about manual blockers and unpubli
   assert.match(legal, /document de travail uniquement/i);
   assert.match(legal, /Ne pas mettre le site en production commerciale avec des champs manquants/i);
 });
+
+
+test("Netlify explicitly rewrites both simple route variants to the static claim page", async () => {
+  const config = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
+  const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(config, /from\s*=\s*["']\/simple["'][\s\S]*?to\s*=\s*["']\/simple\/index\.html["'][\s\S]*?status\s*=\s*200/);
+  assert.match(config, /from\s*=\s*["']\/simple\/["'][\s\S]*?to\s*=\s*["']\/simple\/index\.html["'][\s\S]*?status\s*=\s*200/);
+  assert.match(home, /href=["']\/simple\/["']/);
+  assert.ok((await readFile(new URL("../simple/index.html", import.meta.url), "utf8")).includes("Préparons votre"));
+});
