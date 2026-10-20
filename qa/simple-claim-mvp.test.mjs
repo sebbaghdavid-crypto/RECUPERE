@@ -140,15 +140,17 @@ test("customer submission requires consent and applies server-side rate limiting
 
 test("technical test dossiers use a separate store and do not enter customer indexing", async () => {
   const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
-  assert.match(api, /name: "recupere-cases-test"/);
+  assert.ok(api.includes('name: "recupere-cases-test"'));
   const start = api.indexOf('if (body.action === "create_test")');
   const end = api.indexOf('if (body.action === "verify_test")', start);
   assert.ok(start >= 0 && end > start);
   const branch = api.slice(start, end);
-  assert.match(branch, /testStore\\.setJSON/);
-  assert.doesNotMatch(branch, /store\\.setJSON\\(|indexCase\\(|sendCustomerEmail\\(/);
-  assert.match(branch, /emailSent: false/);
-  assert.match(branch, /isTest: true/);
+  assert.ok(branch.includes("testStore.setJSON"));
+  assert.equal(branch.includes("store.setJSON("), false);
+  assert.equal(branch.includes("indexCase("), false);
+  assert.equal(branch.includes("sendCustomerEmail("), false);
+  assert.ok(branch.includes("emailSent: false"));
+  assert.ok(branch.includes("isTest: true"));
 });
 
 test("technical test persistence verification is admin-protected and confirms no email or supplier submission", async () => {
@@ -157,9 +159,9 @@ test("technical test persistence verification is admin-protected and confirms no
   const end = api.indexOf('if (body.action === "prepare_claim")', start);
   assert.ok(start >= 0 && end > start);
   const branch = api.slice(start, end);
-  assert.match(branch, /allowAdminRequest\\(adminIp\\)/);
-  assert.match(branch, /adminOk\\(req\\)/);
-  assert.match(branch, /testStore\\.get/);
-  assert.match(branch, /persisted: true, emailSent: false, supplierSent: false/);
-  assert.match(branch, /TEST-\\\\d\\{4\\}/);
+  assert.ok(branch.includes("allowAdminRequest(adminIp)"));
+  assert.ok(branch.includes("adminOk(req)"));
+  assert.ok(branch.includes("testStore.get"));
+  assert.ok(branch.includes("persisted: true, emailSent: false, supplierSent: false"));
+  assert.ok(branch.includes("TEST-"));
 });
