@@ -96,7 +96,7 @@ export default async (req) => {
         if (!(await allowAdminRequest(adminIp))) return response({ error: "Trop de tentatives. Réessayez plus tard." }, 429);
         if (!adminOk(req)) return response({ error: "Accès administrateur refusé." }, 401);
         const caseNumber = clean(body.caseNumber, 40);
-        if (!/^TEST-\\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
+        if (!/^TEST-\d{4}-[A-F0-9]{6}$/.test(caseNumber)) return response({ error: "Référence de test invalide." }, 400);
         const item = await testStore.get(`test/${caseNumber}`, { type: "json", consistency: "strong" });
         if (!item) return response({ ok: false, persisted: false, caseNumber }, 404);
         return response({ ok: true, persisted: true, emailSent: false, supplierSent: false, case: item });
