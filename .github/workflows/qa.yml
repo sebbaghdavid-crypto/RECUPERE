@@ -1,7 +1,7 @@
 name: RÉCUPÈRE QA
 on:
   push:
-    branches: [main, chore/reproducible-install-main]
+    branches: [main, chore/reproducible-install-main, fix/simple-route-in-secure-publish]
   pull_request:
     branches: [main]
 permissions:
