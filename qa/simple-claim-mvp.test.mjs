@@ -93,3 +93,9 @@ test("embedded browser JavaScript parses without syntax errors", () => {
   assert.ok(match, "expected an inline script");
   assert.doesNotThrow(() => new vm.Script(match[1]), "inline script must be valid JavaScript");
 });
+
+test("customer emails prefer the active preview URL over the production site URL", async () => {
+  const notifications = await readFile(new URL("../netlify/functions/notifications.mjs", import.meta.url), "utf8");
+  assert.match(notifications, /process\.env\.RECUPERE_BASE_URL\|\|process\.env\.DEPLOY_PRIME_URL\|\|process\.env\.URL/);
+  assert.match(notifications, /replace\(\/\\\$\/,""\)/);
+});
