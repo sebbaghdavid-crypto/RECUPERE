@@ -20,6 +20,12 @@ test("simple claim MVP generates a draft locally and offers copy/download", () =
   assert.match(html, /Sélectionnez le texte puis copiez-le/);
   assert.ok(html.includes("Courrier copié."));
   assert.match(html, /id="copy"[^>]*>Copier le courrier/);
+  assert.match(html, /id="next-step-wrap" class="actions hidden"/);
+  assert.match(html, /Poursuivre ma demande de remboursement/);
+  assert.match(html, /function showNextStep\(\)/);
+  assert.match(html, /https:\/\/www\.sncf-connect\.com\/aide\/contact/);
+  assert.match(html, /https:\/\/www\.fnac\.com\/aide\?thematic=les-retours-and-remboursements/);
+  assert.match(html, /Vous devrez finaliser et envoyer votre demande vous-même/);
   assert.match(html, /id="download"[^>]*>Télécharger en \.txt/);
   assert.match(html, /new Blob\(\[letter\.value\]/);
   assert.match(html, /Aucun courrier n’est envoyé automatiquement/);
