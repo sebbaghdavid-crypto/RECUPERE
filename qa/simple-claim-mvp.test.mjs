@@ -103,6 +103,21 @@ test("customer emails prefer the active preview URL over the production site URL
 });
 
 
+test("Netlify isolated test runner is pinned to the PR preview and requires explicit opt-in for email", async () => {
+  const runner = await readFile(new URL("./netlify-isolated-test.mjs", import.meta.url), "utf8");
+  const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
+  assert.match(runner, /deploy-preview-22--jade-pegasus-f6e204\\.netlify\\.app/);
+  assert.match(runner, /parsed\\.protocol !== "https:"/);
+  assert.match(runner, /parsed\\.hostname !== expectedHost/);
+  assert.match(runner, /RECUPERE_ADMIN_KEY/);
+  assert.match(runner, /process\\.argv\\.includes\("--send-email"\)/);
+  assert.match(runner, /create_test/);
+  assert.match(runner, /verify_test/);
+  assert.match(runner, /send_test_email/);
+  assert.match(runbook, /Ne jamais contourner l'accès de prévisualisation/);
+  assert.match(runbook, /la réception réelle/);
+});
+
 test("technical test-case path requires admin authorization and never sends customer email", async () => {
   const api = await readFile(new URL("../netlify/functions/cases.mjs", import.meta.url), "utf8");
   const start = api.indexOf('if (body.action === "create_test")');
