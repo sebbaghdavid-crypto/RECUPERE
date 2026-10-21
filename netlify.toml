@@ -1,7 +1,7 @@
-
 [build]
+  command = "node scripts/build-static.mjs"
   environment = { NODE_VERSION = "22.12.0" }
-  publish = "."
+  publish = "dist"
 
 [build.processing]
   skip_processing = false
@@ -10,8 +10,10 @@
   from = "/simple"
   to = "/simple/index.html"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/simple/"
   to = "/simple/index.html"
   status = 200
+  force = true

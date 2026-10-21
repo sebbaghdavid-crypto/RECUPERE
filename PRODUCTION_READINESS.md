@@ -81,3 +81,13 @@ Vérifier dans les paramètres Netlify que les variables suivantes existent dans
 
 ## Critère de feu vert
 Le lancement est autorisé uniquement après validation des sections 1 à 5, tests manuels documentés, déploiement vérifié et décision explicite du responsable du service. Le cashback reste hors périmètre tant que sa section 6 n'est pas entièrement validée.
+
+
+## 2026-10-20 — Diagnostic du 404 et correctif en attente
+- [x] Reproduire le 404 sur `/simple`, `/simple/` et `/simple/index.html` en production (contrôle en lecture seule).
+- [x] Confirmer que `simple/index.html` existe dans le dépôt.
+- [x] Préparer un artefact `dist/` à liste blanche qui inclut la page simple et conserve les deux redirections.
+- [x] Tests GitHub Actions du correctif réussis sur la PR #27.
+- [ ] Ne pas déclarer le 404 corrigé avant un déploiement effectif et la vérification des trois URL.
+- [ ] Après déploiement, vérifier la persistance d'un dossier isolé et la réception d'un e-mail de test contrôlé.
+- [ ] Vérifier que les fichiers de dépôt et fonctions serveur ne sont pas servis comme fichiers statiques.

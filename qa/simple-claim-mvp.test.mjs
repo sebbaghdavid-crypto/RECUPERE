@@ -106,7 +106,7 @@ test("customer emails prefer the active preview URL over the production site URL
 test("Netlify isolated test runner is pinned to the PR preview and requires explicit opt-in for email", async () => {
   const runner = await readFile(new URL("./netlify-isolated-test.mjs", import.meta.url), "utf8");
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
-  assert.ok(runner.includes('const expectedHost = "deploy-preview-22--jade-pegasus-f6e204.netlify.app"'));
+  assert.ok(runner.includes('const expectedHost = "deploy-preview-27--jade-pegasus-f6e204.netlify.app"'));
   assert.ok(runner.includes('parsed.protocol !== "https:"'));
   assert.ok(runner.includes("parsed.hostname !== expectedHost"));
   assert.ok(runner.includes("RECUPERE_ADMIN_KEY"));
@@ -114,8 +114,8 @@ test("Netlify isolated test runner is pinned to the PR preview and requires expl
   assert.ok(runner.includes('"create_test"'));
   assert.ok(runner.includes('"verify_test"'));
   assert.ok(runner.includes('"send_test_email"'));
-  assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
-  assert.ok(runbook.includes("il ne prouve pas la réception."));
+  assert.ok(runbook.includes("Ne jamais contourner l’accès de prévisualisation"));
+  assert.ok(runbook.includes("ne prouve pas la réception effective."));
 });
 
 test("technical test-case path requires admin authorization and never sends customer email", async () => {
@@ -203,11 +203,11 @@ test("technical test persistence verification is admin-protected and confirms no
 test("post-merge delivery check documents the expected production route and safety gate", async () => {
   const netlify = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
-  assert.match(netlify, /publish\s*=\s*["']\.["']/);
-  assert.ok(runbook.includes("production a répondu 404 sur `/simple/`"));
-  assert.ok(runbook.includes("BLOQUÉ pour exécution automatique sans opérateur"));
-  assert.ok(runbook.includes("Aucun accès aux variables secrètes Netlify"));
-  assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
+  assert.match(netlify, /publish\s*=\s*["']dist["']/);
+  assert.ok(runbook.includes("La production a répondu 404 sur `/simple`, `/simple/` et `/simple/index.html`"));
+  assert.ok(runbook.includes("BLOQUÉ tant que l’aperçu #27"));
+  assert.ok(runbook.includes("L’agent ne dispose pas des variables secrètes Netlify"));
+  assert.ok(runbook.includes("Ne jamais contourner l’accès de prévisualisation"));
 });
 
 test("public launch checklist remains explicit about manual blockers and unpublished legal drafts", async () => {
