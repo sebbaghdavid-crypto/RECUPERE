@@ -114,7 +114,7 @@ test("Netlify isolated test runner is pinned to the PR preview and requires expl
   assert.ok(runner.includes('"create_test"'));
   assert.ok(runner.includes('"verify_test"'));
   assert.ok(runner.includes('"send_test_email"'));
-  assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
+  assert.ok(runbook.includes("Ne jamais contourner l’accès de prévisualisation"));
   assert.ok(runbook.includes("il ne prouve pas la réception."));
 });
 
@@ -205,7 +205,7 @@ test("post-merge delivery check documents the expected production route and safe
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
   assert.match(netlify, /publish\s*=\s*["']dist["']/);
   assert.ok(runbook.includes("La production a répondu 404 sur `/simple`, `/simple/` et `/simple/index.html`"));
-  assert.ok(runbook.includes("BLOQUÉ pour exécution automatique sans opérateur"));
+  assert.ok(runbook.includes("BLOQUÉ tant que l’aperçu #27"));
   assert.ok(runbook.includes("Aucun accès aux variables secrètes Netlify"));
   assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
 });
