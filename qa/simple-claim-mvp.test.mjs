@@ -106,7 +106,7 @@ test("customer emails prefer the active preview URL over the production site URL
 test("Netlify isolated test runner is pinned to the PR preview and requires explicit opt-in for email", async () => {
   const runner = await readFile(new URL("./netlify-isolated-test.mjs", import.meta.url), "utf8");
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
-  assert.ok(runner.includes('const expectedHost = "deploy-preview-22--jade-pegasus-f6e204.netlify.app"'));
+  assert.ok(runner.includes('const expectedHost = "deploy-preview-27--jade-pegasus-f6e204.netlify.app"'));
   assert.ok(runner.includes('parsed.protocol !== "https:"'));
   assert.ok(runner.includes("parsed.hostname !== expectedHost"));
   assert.ok(runner.includes("RECUPERE_ADMIN_KEY"));
@@ -204,7 +204,7 @@ test("post-merge delivery check documents the expected production route and safe
   const netlify = await readFile(new URL("../netlify.toml", import.meta.url), "utf8");
   const runbook = await readFile(new URL("./NETLIFY-ISOLATED-TEST-RUNBOOK.md", import.meta.url), "utf8");
   assert.match(netlify, /publish\s*=\s*["']dist["']/);
-  assert.ok(runbook.includes("production a répondu 404 sur `/simple/`"));
+  assert.ok(runbook.includes("La production a répondu 404 sur `/simple`, `/simple/` et `/simple/index.html`"));
   assert.ok(runbook.includes("BLOQUÉ pour exécution automatique sans opérateur"));
   assert.ok(runbook.includes("Aucun accès aux variables secrètes Netlify"));
   assert.ok(runbook.includes("Ne jamais contourner l'accès de prévisualisation"));
