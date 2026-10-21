@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 
-const expectedHost = "deploy-preview-22--jade-pegasus-f6e204.netlify.app";
+const expectedHost = "deploy-preview-27--jade-pegasus-f6e204.netlify.app";
 const baseUrl = (process.env.RECUPERE_PREVIEW_URL || `https://${expectedHost}`).replace(/\/$/, "");
 const adminKey = String(process.env.RECUPERE_ADMIN_KEY || "");
 const sendEmail = process.argv.includes("--send-email");
