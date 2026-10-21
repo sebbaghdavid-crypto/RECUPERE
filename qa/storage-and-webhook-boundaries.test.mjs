@@ -18,7 +18,7 @@ test("case storage uses compare-and-swap instead of blind writes for concurrent 
 
 test("rate limiting uses hashed identifiers and conditional writes", async () => {
   const auth = await source("netlify/functions/auth.mjs");
-  assert.match(auth, /const safe=await hash\(String\(key\|\|""\)\)/);
+  assert.match(auth, /safe=await hash\(String\(key\|\|""\)\)/);
   assert.match(auth, /getWithMetadata\(k,\{type:"json",consistency:"strong"\}\)/);
   assert.match(auth, /setJSON\(k,value,\{onlyIfMatch:current\.etag\}\)/);
   assert.match(auth, /setJSON\(k,value,\{onlyIfNew:true\}\)/);
