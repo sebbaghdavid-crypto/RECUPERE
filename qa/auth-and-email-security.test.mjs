@@ -16,7 +16,7 @@ test("session cookie uses host-only, HTTPS-only, HttpOnly and SameSite protectio
 
 test("magic-link tokens are stored hashed, expire, and are consumed with compare-and-swap", async () => {
   const auth = await read("netlify/functions/auth.mjs");
-  assert.match(auth, /const raw=token\(\),h=await hash\(raw\)/);
+  assert.match(auth, /const normalized=.*raw=token\(\),h=await hash\(raw\)/);
   assert.match(auth, /expiresAt:new Date\(Date\.now\(\)\+900000\)/);
   assert.match(auth, /if\(!m\|\|m\.used\|\|new Date\(m\.expiresAt\)<=new Date\(\)\)return null/);
   assert.match(auth, /setJSON\(key,used,\{onlyIfMatch:current\.etag\}\)/);
