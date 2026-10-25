@@ -128,7 +128,8 @@ export function identifyProviders(input = {}, providers = []) {
   if (top && hasStrongEvidence && top.score >= 60 && separated) confidence = "high";
   else if (top && top.score >= 25) confidence = "medium";
 
-  const needsClarification = confidence !== "high" || candidates.length > 1;
+  // Even a high-confidence match is only a suggestion; the user must confirm it.
+  const needsClarification = true;
   const reasons = top?.evidence ?? [];
   return {
     status: candidates.length === 0 ? "not_identified" : "candidates_found",
