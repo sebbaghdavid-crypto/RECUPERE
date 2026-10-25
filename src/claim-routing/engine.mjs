@@ -9,7 +9,11 @@ const normalizeDomain = (value) => {
   const raw = String(value ?? "").trim();
   if (!raw) return "";
   try {
-    const url = new URL(raw.includes("://") ? raw : `https://${raw}`);
+    const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw);
+    const url = new URL(hasScheme ? raw : `https://${raw}`);
+    // A domain field may contain a pasted HTTPS URL, but never credentials
+    // or a non-HTTPS scheme that could be misread as an official domain.
+    if ((hasScheme && url.protocol !== "https:") || url.username || url.password) return "";
     return url.hostname.toLowerCase().replace(/^www\./, "");
   } catch {
     return "";
@@ -19,7 +23,7 @@ const normalizeDomain = (value) => {
 const safeHttpsUrl = (value) => {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && Boolean(url.hostname);
+    return url.protocol === "https:" && Boolean(url.hostname) && !url.username && !url.password;
   } catch {
     return false;
   }
