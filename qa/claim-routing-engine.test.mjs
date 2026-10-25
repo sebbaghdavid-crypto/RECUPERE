@@ -107,3 +107,10 @@ test("result links are filtered and no external action is ever performed", () =>
   assert.deepEqual(result.candidates[0].source_urls, ["https://sample.example/terms"]);
   assert.equal(result.external_action_allowed, false);
 });
+
+test("an unidentified provider asks for clarification instead of guessing", () => {
+  const result = identifyProviders({ merchant: "Unknown Merchant" }, registry.providers);
+  assert.equal(result.status, "not_identified");
+  assert.equal(result.needs_clarification, true);
+  assert.equal(result.external_action_allowed, false);
+});
