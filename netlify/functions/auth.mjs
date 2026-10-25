@@ -26,6 +26,10 @@ export async function allowCaseCreate(email,ip){
  const e=String(email||"").trim().toLowerCase(),i=String(ip||"unknown");
  return (await rateLimit("case-email",e,10)) && (await rateLimit("case-ip",i,30));
 }
+export async function allowClaimRoutingRequest(email,ip){
+ const e=String(email||"").trim().toLowerCase(),i=String(ip||"unknown");
+ return (await rateLimit("claim-routing-email",e,20)) && (await rateLimit("claim-routing-ip",i,40));
+}
 export async function allowPaymentRequest(ip){return rateLimit("payment-ip",String(ip||"unknown"),10)}
 export async function allowAdminRequest(ip){return rateLimit("admin-ip",String(ip||"unknown"),20)}
 export async function allowCashbackWebhookRequest(ip){return rateLimit("cashback-webhook-ip",String(ip||"unknown"),30)}
